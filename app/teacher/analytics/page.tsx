@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { BarChart3, TrendingUp, Users, BookOpen, Award, Calendar, Filter } from 'lucide-react';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 import {
   Bar,
   BarChart,
@@ -25,7 +26,7 @@ export default function AnalyticsOverviewPage() {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [selectedTerm, setSelectedTerm] = useState<string>('1');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2024/2025');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
   
   // Statistics
   const [totalStudents, setTotalStudents] = useState(0);

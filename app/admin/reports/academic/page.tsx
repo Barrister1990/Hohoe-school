@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Download, Filter, BookOpen, TrendingUp, Calendar, BarChart3 } from 'lucide-react';
-import { Subject, Class } from '@/types';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { getAcademicYearOptions, getCurrentAcademicYear } from '@/lib/utils/academic-years';
+import { Class, Subject } from '@/types';
+import { ArrowLeft, BarChart3, BookOpen, Calendar, Download, Filter, TrendingUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function AcademicReportsPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function AcademicReportsPage() {
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [reportType, setReportType] = useState<string>('performance');
-  const [academicYear, setAcademicYear] = useState<string>('2024/2025');
+  const [academicYear, setAcademicYear] = useState<string>(getCurrentAcademicYear());
   const [term, setTerm] = useState<string>('1');
 
   useEffect(() => {
@@ -231,13 +232,17 @@ export default function AcademicReportsPage() {
               <Calendar className="h-4 w-4 inline mr-2" />
               Academic Year
             </label>
-            <input
-              type="text"
+            <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              placeholder="2024/2025"
               className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
-            />
+            >
+              {getAcademicYearOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

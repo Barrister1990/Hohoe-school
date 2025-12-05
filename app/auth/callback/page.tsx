@@ -5,14 +5,14 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 /**
  * Client-side auth callback handler
  * Handles hash-based auth tokens (from inviteUserByEmail)
  * Since hash fragments aren't sent to server, we handle them here
  */
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
@@ -160,6 +160,34 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="relative w-16 h-16">
+              <Image
+                src="/logo.png"
+                alt="Hohoe E.P Basic A Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">HOHOE E.P BASIC A</h1>
+          <div className="mt-8">
+            <div className="mx-auto w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
 

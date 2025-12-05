@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/auth-store';
 import LoginForm from '@/components/auth/LoginForm';
-import Image from 'next/image';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { CheckCircle, X } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, user } = useAuthStore();
@@ -159,5 +159,39 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white overflow-y-auto">
+          <div className="w-full max-w-md my-auto text-center">
+            <div className="flex justify-center mb-3">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+                <Image
+                  src="/logo.png"
+                  alt="Hohoe E.P Basic A Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+              HOHOE E.P BASIC A
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">
+              School Management System
+            </p>
+            <div className="mx-auto w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

@@ -6,6 +6,7 @@ import { Class, Student, Subject } from '@/types';
 import { ArrowLeft, Calendar, Filter } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 
 interface SubjectGrade {
   subjectId: string;
@@ -45,7 +46,7 @@ export default function ClassStudentGradesPage() {
   const [studentGradesData, setStudentGradesData] = useState<StudentGradeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTerm, setSelectedTerm] = useState<string>('1');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2024/2025');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
 
   useEffect(() => {
     const loadData = async () => {
@@ -290,8 +291,11 @@ export default function ClassStudentGradesPage() {
               onChange={(e) => setSelectedAcademicYear(e.target.value)}
               className="block w-full pl-9 md:pl-10 pr-3 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base appearance-none bg-white"
             >
-              <option value="2024/2025">2024/2025</option>
-              <option value="2025/2026">2025/2026</option>
+              {getAcademicYearOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="relative">

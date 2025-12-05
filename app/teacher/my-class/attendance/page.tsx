@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { ArrowLeft, Save, Calendar, UserCheck, Plus } from 'lucide-react';
-import { Class, Student } from '@/types';
-import { Attendance } from '@/lib/services/attendance-service';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { Attendance } from '@/lib/services/attendance-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { getAcademicYearOptions, getCurrentAcademicYear } from '@/lib/utils/academic-years';
+import { Class, Student } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, Save, UserCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const attendanceSchema = z.object({
   academicYear: z.string().min(1, 'Academic year is required'),
@@ -31,7 +32,7 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedTerm, setSelectedTerm] = useState<string>('1');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2024/2025');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
   const [universalTotalDays, setUniversalTotalDays] = useState<number>(0);
 
   useEffect(() => {
@@ -313,8 +314,11 @@ export default function AttendancePage() {
               onChange={(e) => setSelectedAcademicYear(e.target.value)}
               className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
             >
-              <option value="2024/2025">2024/2025</option>
-              <option value="2025/2026">2025/2026</option>
+              {getAcademicYearOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

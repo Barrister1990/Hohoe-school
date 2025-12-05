@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { calculateGrade, getGradeColorClass } from '@/lib/utils/grading';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 
 // Updated schema: assessment fields are optional, but at least one must be provided
 // Validation only checks max values when a number is entered
@@ -407,8 +408,11 @@ export default function EnterGradesPage() {
                     {...field}
                     className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
                   >
-                    <option value="2024/2025">2024/2025</option>
-                    <option value="2025/2026">2025/2026</option>
+                    {getAcademicYearOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 )}
               />

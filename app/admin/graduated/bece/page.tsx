@@ -6,6 +6,7 @@ import { ArrowLeft, FileBarChart, Filter, Download, Calendar } from 'lucide-reac
 import { beceService } from '@/lib/services/bece-service';
 import { Student } from '@/types';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 
 interface BECEResultWithStudent {
   id: string;
@@ -23,7 +24,7 @@ export default function BECEResultsPage() {
   const router = useRouter();
   const { showError, showInfo } = useAlert();
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState<string>('2024/2025');
+  const [selectedYear, setSelectedYear] = useState<string>(getCurrentAcademicYear());
   const [results, setResults] = useState<BECEResultWithStudent[]>([]);
   const [students, setStudents] = useState<Record<string, Student>>({});
   const [aggregateFilter, setAggregateFilter] = useState<string>('all');
@@ -163,10 +164,11 @@ export default function BECEResultsPage() {
               onChange={(e) => setSelectedYear(e.target.value)}
               className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
             >
-              <option value="2024/2025">2024/2025</option>
-              <option value="2023/2024">2023/2024</option>
-              <option value="2022/2023">2022/2023</option>
-              <option value="2021/2022">2021/2022</option>
+              {getAcademicYearOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

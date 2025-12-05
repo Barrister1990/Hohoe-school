@@ -6,6 +6,7 @@ import { ArrowLeft, GraduationCap, Plus, X, Save, Trash2 } from 'lucide-react';
 import { Class, Student } from '@/types';
 import { isHighestLevel } from '@/lib/utils/class-levels';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 
 interface BECEResult {
   id: string;
@@ -27,7 +28,7 @@ export default function GraduationPage() {
   const [beceResults, setBeceResults] = useState<Record<string, BECEResult[]>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [academicYear, setAcademicYear] = useState<string>('2024/2025');
+  const [academicYear, setAcademicYear] = useState<string>(getCurrentAcademicYear());
 
   useEffect(() => {
     const loadData = async () => {

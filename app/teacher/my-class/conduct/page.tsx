@@ -3,6 +3,7 @@
 import { useAlert } from '@/components/shared/AlertProvider';
 import { ClassTeacherEvaluation, ClassTeacherReward, ConductRating, InterestLevel } from '@/lib/services/evaluation-service';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { getAcademicYearOptions, getCurrentAcademicYear } from '@/lib/utils/academic-years';
 import { Class, Student } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Award, Plus, Save, X } from 'lucide-react';
@@ -109,7 +110,7 @@ export default function ConductPage() {
   const [saving, setSaving] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedTerm, setSelectedTerm] = useState<string>('1');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('2024/2025');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [newReward, setNewReward] = useState({ type: '', description: '' });
 
@@ -406,8 +407,11 @@ export default function ConductPage() {
               onChange={(e) => setSelectedAcademicYear(e.target.value)}
               className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
             >
-              <option value="2024/2025">2024/2025</option>
-              <option value="2025/2026">2025/2026</option>
+              {getAcademicYearOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

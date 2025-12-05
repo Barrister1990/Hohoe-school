@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Users, School, BookOpen, GraduationCap, TrendingUp, Loader2 } from 'lucide-react';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { getAcademicYearOptions } from '@/lib/utils/academic-years';
 
 type AnalyticsType = 'student' | 'class' | 'subject' | 'bece' | null;
 
@@ -529,11 +530,11 @@ ${perf.topPerformers.slice(0, 10).map((tp: any, idx: number) => `${idx + 1}. ${t
                 <option key={s.id} value={s.name}>{s.name}</option>
               ))}
               {selectedType === 'bece' && (
-                <>
-                  <option value="2024/2025">2024/2025 Academic Year</option>
-                  <option value="2023/2024">2023/2024 Academic Year</option>
-                  <option value="2022/2023">2022/2023 Academic Year</option>
-                </>
+                getAcademicYearOptions().map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label} Academic Year
+                  </option>
+                ))
               )}
             </select>
           </div>

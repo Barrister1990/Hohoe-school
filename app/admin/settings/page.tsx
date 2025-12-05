@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 import {
   Settings,
   School,
@@ -38,7 +39,7 @@ export default function SettingsPage() {
 
   // Academic Settings State
   const [academicSettings, setAcademicSettings] = useState({
-    currentAcademicYear: '2024/2025',
+    currentAcademicYear: getCurrentAcademicYear(),
     currentTerm: '1',
     terms: ['Term 1', 'Term 2', 'Term 3'],
   });
@@ -104,7 +105,7 @@ export default function SettingsPage() {
           const academicData = await academicRes.json();
           if (academicData) {
             setAcademicSettings({
-              currentAcademicYear: academicData.currentAcademicYear || '2024/2025',
+              currentAcademicYear: academicData.currentAcademicYear || getCurrentAcademicYear(),
               currentTerm: String(academicData.currentTerm || 1),
               terms: ['Term 1', 'Term 2', 'Term 3'],
             });
@@ -412,8 +413,7 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Current Academic Year <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={academicSettings.currentAcademicYear}
                     onChange={(e) =>
                       setAcademicSettings({
@@ -421,10 +421,15 @@ export default function SettingsPage() {
                         currentAcademicYear: e.target.value,
                       })
                     }
-                    placeholder="2024/2025"
                     className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Format: YYYY/YYYY</p>
+                  >
+                    {getAcademicYearOptions().map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Current academic year</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
