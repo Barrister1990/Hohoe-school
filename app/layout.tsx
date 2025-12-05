@@ -1,5 +1,6 @@
 import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 import { AlertProvider } from "@/components/shared/AlertProvider";
+import { InstallPrompt } from "@/components/shared/InstallPrompt";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -34,6 +35,7 @@ export default function RootLayout({
         <AuthSessionProvider>
           <AlertProvider>
             {children}
+            <InstallPrompt />
           </AlertProvider>
         </AuthSessionProvider>
       </body>
