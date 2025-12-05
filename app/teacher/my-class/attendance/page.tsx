@@ -308,7 +308,7 @@ export default function AttendancePage() {
             <select
               value={selectedAcademicYear}
               onChange={(e) => setSelectedAcademicYear(e.target.value)}
-              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {getAcademicYearOptions().map((option) => (
                 <option key={option.value} value={option.value}>
@@ -324,7 +324,7 @@ export default function AttendancePage() {
             <select
               value={selectedTerm}
               onChange={(e) => setSelectedTerm(e.target.value)}
-              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               <option value="1">Term 1</option>
               <option value="2">Term 2</option>
@@ -346,7 +346,7 @@ export default function AttendancePage() {
                   setValue('totalDays', value);
                 }
               }}
-              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               placeholder="Set for all students"
             />
             <p className="mt-1 text-xs text-gray-500">Applies to all students in the class</p>
@@ -428,7 +428,7 @@ export default function AttendancePage() {
                       {...register('totalDays', { valueAsNumber: true })}
                       type="number"
                       min="1"
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base bg-gray-50"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base bg-gray-50"
                       readOnly
                     />
                     <p className="mt-1 text-xs text-gray-500">Set in the filter section above (applies to all students)</p>
@@ -452,7 +452,7 @@ export default function AttendancePage() {
                       type="number"
                       min="0"
                       max={watchedTotalDays}
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     />
                     {errors.daysPresent && (
                       <p className="mt-1 text-xs text-red-600">{errors.daysPresent.message}</p>

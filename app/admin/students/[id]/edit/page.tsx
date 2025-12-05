@@ -197,7 +197,7 @@ export default function EditStudentPage() {
                 {...register('firstName')}
                 type="text"
                 id="firstName"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.firstName && (
                 <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>
@@ -212,7 +212,7 @@ export default function EditStudentPage() {
                 {...register('middleName')}
                 type="text"
                 id="middleName"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
 
@@ -224,7 +224,7 @@ export default function EditStudentPage() {
                 {...register('lastName')}
                 type="text"
                 id="lastName"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.lastName && (
                 <p className="mt-1 text-xs text-red-600">{errors.lastName.message}</p>
@@ -239,7 +239,7 @@ export default function EditStudentPage() {
                 {...register('dateOfBirth')}
                 type="date"
                 id="dateOfBirth"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.dateOfBirth && (
                 <p className="mt-1 text-xs text-red-600">{errors.dateOfBirth.message}</p>
@@ -253,7 +253,7 @@ export default function EditStudentPage() {
               <select
                 {...register('gender')}
                 id="gender"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="">Select gender</option>
                 <option value="male">Male</option>
@@ -271,7 +271,7 @@ export default function EditStudentPage() {
               <select
                 {...register('status')}
                 id="status"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="active">Active</option>
                 <option value="transferred">Transferred</option>
@@ -289,7 +289,7 @@ export default function EditStudentPage() {
               <select
                 {...register('classId')}
                 id="classId"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="">Select class</option>
                 {classes.map((cls) => (
@@ -317,7 +317,7 @@ export default function EditStudentPage() {
                 {...register('parentName')}
                 type="text"
                 id="parentName"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
 
@@ -330,7 +330,7 @@ export default function EditStudentPage() {
                 type="tel"
                 id="parentPhone"
                 placeholder="+233XXXXXXXXX"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
 
@@ -342,7 +342,7 @@ export default function EditStudentPage() {
                 {...register('address')}
                 type="text"
                 id="address"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
           </div>

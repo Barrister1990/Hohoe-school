@@ -124,7 +124,7 @@ export default function LoginForm() {
               id="email"
               type="email"
               autoComplete="email"
-              className="block w-full pl-9 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full pl-9 pr-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               placeholder="name@example.com"
             />
           </div>
@@ -150,7 +150,7 @@ export default function LoginForm() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              className="block w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full pl-9 pr-9 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               placeholder="Enter your password"
             />
             <button

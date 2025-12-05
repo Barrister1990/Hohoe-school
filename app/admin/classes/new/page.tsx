@@ -150,7 +150,7 @@ export default function AddClassPage() {
               </label>
               <select
                 {...register('level')}
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="KG 1">KG 1</option>
                 <option value="KG 2">KG 2</option>
@@ -177,7 +177,7 @@ export default function AddClassPage() {
                 type="text"
                 {...register('stream')}
                 placeholder="A, B, C, etc."
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.stream && (
                 <p className="mt-1 text-xs text-red-600">{errors.stream.message}</p>
@@ -191,7 +191,7 @@ export default function AddClassPage() {
               <input
                 type="text"
                 {...register('name')}
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.name && (
                 <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
@@ -204,7 +204,7 @@ export default function AddClassPage() {
               </label>
               <select
                 {...register('classTeacherId')}
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               >
                 <option value="">Select Class Teacher</option>
                 {teachers.map((teacher) => (
@@ -229,7 +229,7 @@ export default function AddClassPage() {
                 type="number"
                 {...register('capacity', { valueAsNumber: true })}
                 min="1"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.capacity && (
                 <p className="mt-1 text-xs text-red-600">{errors.capacity.message}</p>

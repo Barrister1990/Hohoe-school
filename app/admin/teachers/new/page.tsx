@@ -129,7 +129,7 @@ export default function AddTeacherPage() {
                 {...register('name')}
                 type="text"
                 id="name"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.name && (
                 <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
@@ -144,7 +144,7 @@ export default function AddTeacherPage() {
                 {...register('email')}
                 type="email"
                 id="email"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
@@ -160,7 +160,7 @@ export default function AddTeacherPage() {
                 type="tel"
                 id="phone"
                 placeholder="+233XXXXXXXXX"
-                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
 

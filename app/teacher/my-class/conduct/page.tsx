@@ -410,7 +410,7 @@ export default function ConductPage() {
             <select
               value={selectedAcademicYear}
               onChange={(e) => setSelectedAcademicYear(e.target.value)}
-              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               {getAcademicYearOptions().map((option) => (
                 <option key={option.value} value={option.value}>
@@ -426,7 +426,7 @@ export default function ConductPage() {
             <select
               value={selectedTerm}
               onChange={(e) => setSelectedTerm(e.target.value)}
-              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               <option value="1">Term 1</option>
               <option value="2">Term 2</option>
@@ -524,7 +524,7 @@ export default function ConductPage() {
                   <textarea
                     {...register('conductRemarks')}
                     rows={2}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     placeholder="Add remarks about student conduct..."
                   />
                 </div>
@@ -566,7 +566,7 @@ export default function ConductPage() {
                   <textarea
                     {...register('interestRemarks')}
                     rows={2}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     placeholder="Add remarks about student interest..."
                   />
                 </div>
@@ -666,7 +666,7 @@ export default function ConductPage() {
                 <select
                   value={newReward.type}
                   onChange={(e) => setNewReward({ ...newReward, type: e.target.value })}
-                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 >
                   <option value="">Select reward type</option>
                   {rewardTypes.map((type) => (
@@ -685,7 +685,7 @@ export default function ConductPage() {
                   value={newReward.description}
                   onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   placeholder="Describe the reward..."
                 />
               </div>

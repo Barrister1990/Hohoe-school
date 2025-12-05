@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { passwordService } from '@/lib/services/password-service';
+import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 const resetPasswordSchema = z
@@ -34,7 +35,10 @@ function ResetPasswordContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Support both 'code' (Supabase) and 'token' (legacy) parameters
+  const code = searchParams.get('code') || '';
   const token = searchParams.get('token') || '';
 
   const {
@@ -48,11 +52,89 @@ function ResetPasswordContent() {
 
   const newPassword = watch('newPassword');
 
+  // Handle Supabase password reset callback (tokens in URL hash)
   useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset.');
-    }
-  }, [token]);
+    const handleAuthCallback = async () => {
+      // Check if we have auth tokens in the hash (from Supabase redirect)
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const type = hashParams.get('type');
+
+        if (accessToken && type === 'recovery') {
+          setLoading(true);
+          setError(null);
+
+          try {
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (!refreshToken) {
+              throw new Error('Missing refresh token. Please request a new password reset.');
+            }
+
+            // Set the session from hash tokens
+            const { data: { session }, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (sessionError || !session) {
+              throw new Error('Failed to authenticate. Please request a new password reset.');
+            }
+
+            // Verify we have a user
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            
+            if (user && !userError) {
+              // Clear the hash from URL
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              setIsAuthenticated(true);
+            } else {
+              throw new Error('Failed to authenticate. Please request a new password reset.');
+            }
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to authenticate. Please request a new password reset.');
+          } finally {
+            setLoading(false);
+          }
+        }
+      } else if (code) {
+        // If we have a code parameter, Supabase might have already set the session
+        // Check if we have an active session
+        setLoading(true);
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (session && !sessionError) {
+            // Session is already established, we're good
+            setIsAuthenticated(true);
+          } else {
+            // Try to exchange the code for a session
+            // Note: Supabase password reset typically uses hash tokens, not code parameter
+            // If code is present, it might be from a different flow
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            
+            if (user && !userError) {
+              setIsAuthenticated(true);
+            } else {
+              // Code parameter without session - might need email
+              // For now, show helpful error
+              throw new Error('Please use the complete link from your email. If the link has expired, please request a new password reset.');
+            }
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Invalid or expired reset code. Please request a new password reset.');
+        } finally {
+          setLoading(false);
+        }
+      } else if (!token) {
+        // Only show error if we don't have code or token
+        setError('Invalid or missing reset token. Please request a new password reset.');
+      }
+    };
+
+    handleAuthCallback();
+  }, [code, token]);
 
   const getPasswordStrength = (password: string): { strength: string; color: string; percentage: number } => {
     if (!password) return { strength: '', color: '', percentage: 0 };
@@ -74,8 +156,9 @@ function ResetPasswordContent() {
   const passwordStrength = getPasswordStrength(newPassword || '');
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!token) {
-      setError('Invalid or missing reset token');
+    // Check if we have authentication (from Supabase hash or code)
+    if (!isAuthenticated && !token && !code) {
+      setError('Invalid or missing reset token. Please request a new password reset.');
       return;
     }
 
@@ -83,7 +166,24 @@ function ResetPasswordContent() {
     setError(null);
 
     try {
-      await passwordService.resetPassword(token, data.newPassword);
+      // If we have a token (legacy), use the password service
+      if (token) {
+        await passwordService.resetPassword(token, data.newPassword);
+      } else {
+        // For Supabase flow, we can directly update the password
+        // The session is already established from the hash/code
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: data.newPassword,
+        });
+
+        if (updateError) {
+          if (updateError.message?.includes('weak') || updateError.message?.includes('password')) {
+            throw new Error('Password does not meet security requirements. Please choose a stronger password.');
+          }
+          throw new Error(updateError.message || 'Failed to reset password. Please try again.');
+        }
+      }
+
       setSuccess(true);
       setTimeout(() => {
         router.push('/?passwordReset=true');
@@ -156,10 +256,18 @@ function ResetPasswordContent() {
             </div>
           )}
 
-          {!token && (
+          {!isAuthenticated && !token && !code && !loading && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
                 Invalid or missing reset token. Please check your email link or request a new password reset.
+              </p>
+            </div>
+          )}
+
+          {loading && !isAuthenticated && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                Verifying reset link...
               </p>
             </div>
           )}
@@ -178,7 +286,7 @@ function ResetPasswordContent() {
                   id="newPassword"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   placeholder="Enter new password"
                 />
                 <button
@@ -273,7 +381,7 @@ function ResetPasswordContent() {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   placeholder="Confirm new password"
                 />
                 <button
@@ -296,7 +404,7 @@ function ResetPasswordContent() {
             <div>
               <button
                 type="submit"
-                disabled={loading || !token}
+                disabled={loading || (!isAuthenticated && !token && !code)}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm md:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Resetting Password...' : 'Reset Password'}

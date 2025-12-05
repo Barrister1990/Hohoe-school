@@ -418,7 +418,7 @@ export default function EnterGradesPage() {
                       setSelectedSubject(e.target.value);
                     }}
                     disabled={!selectedClass}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">{selectedClass ? 'Select subject' : 'Select class first'}</option>
                     {filteredSubjects.map((subject) => (
@@ -546,7 +546,7 @@ export default function EnterGradesPage() {
                         min="0"
                         max="40"
                         placeholder={existingGrade?.project ? existingGrade.project.toString() : 'Enter score'}
-                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       />
                       {errors.project && (
                         <p className="mt-1 text-xs text-red-600">{errors.project.message}</p>
@@ -566,7 +566,7 @@ export default function EnterGradesPage() {
                         min="0"
                         max="20"
                         placeholder={existingGrade?.test1 ? existingGrade.test1.toString() : 'Enter score'}
-                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       />
                       {errors.test1 && (
                         <p className="mt-1 text-xs text-red-600">{errors.test1.message}</p>
@@ -586,7 +586,7 @@ export default function EnterGradesPage() {
                         min="0"
                         max="20"
                         placeholder={existingGrade?.test2 ? existingGrade.test2.toString() : 'Enter score'}
-                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       />
                       {errors.test2 && (
                         <p className="mt-1 text-xs text-red-600">{errors.test2.message}</p>
@@ -606,7 +606,7 @@ export default function EnterGradesPage() {
                         min="0"
                         max="20"
                         placeholder={existingGrade?.groupWork ? existingGrade.groupWork.toString() : 'Enter score'}
-                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       />
                       {errors.groupWork && (
                         <p className="mt-1 text-xs text-red-600">{errors.groupWork.message}</p>
@@ -626,7 +626,7 @@ export default function EnterGradesPage() {
                         min="0"
                         max="100"
                         placeholder={existingGrade?.exam ? existingGrade.exam.toString() : 'Enter score'}
-                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       />
                       {errors.exam && (
                         <p className="mt-1 text-xs text-red-600">{errors.exam.message}</p>

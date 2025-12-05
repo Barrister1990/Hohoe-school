@@ -201,7 +201,7 @@ function ChangePasswordContent() {
                     id="currentPassword"
                     type={showCurrentPassword ? 'text' : 'password'}
                     autoComplete="current-password"
-                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     placeholder="Enter current password"
                   />
                   <button

@@ -171,7 +171,7 @@ export default function TeacherPermissionsPage() {
         <select
           value={selectedTeacher}
           onChange={(e) => setSelectedTeacher(e.target.value)}
-          className="w-full md:w-1/2 px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+          className="w-full md:w-1/2 px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
         >
           <option value="">All Teachers</option>
           {teachers.map((teacher) => (

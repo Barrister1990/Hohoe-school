@@ -342,7 +342,7 @@ export default function SettingsPage() {
                     type="text"
                     value={schoolInfo.name}
                     onChange={(e) => setSchoolInfo({ ...schoolInfo, name: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -353,7 +353,7 @@ export default function SettingsPage() {
                     type="tel"
                     value={schoolInfo.phone}
                     onChange={(e) => setSchoolInfo({ ...schoolInfo, phone: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -364,7 +364,7 @@ export default function SettingsPage() {
                     type="text"
                     value={schoolInfo.address}
                     onChange={(e) => setSchoolInfo({ ...schoolInfo, address: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -375,7 +375,7 @@ export default function SettingsPage() {
                     type="email"
                     value={schoolInfo.email}
                     onChange={(e) => setSchoolInfo({ ...schoolInfo, email: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -386,7 +386,7 @@ export default function SettingsPage() {
                     type="url"
                     value={schoolInfo.website}
                     onChange={(e) => setSchoolInfo({ ...schoolInfo, website: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
               </div>
@@ -421,7 +421,7 @@ export default function SettingsPage() {
                         currentAcademicYear: e.target.value,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   >
                     {getAcademicYearOptions().map((option) => (
                       <option key={option.value} value={option.value}>
@@ -440,7 +440,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setAcademicSettings({ ...academicSettings, currentTerm: e.target.value })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   >
                     <option value="1">Term 1</option>
                     <option value="2">Term 2</option>
@@ -512,7 +512,7 @@ export default function SettingsPage() {
                         project: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -528,7 +528,7 @@ export default function SettingsPage() {
                         test1: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -544,7 +544,7 @@ export default function SettingsPage() {
                         test2: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -560,7 +560,7 @@ export default function SettingsPage() {
                         groupWork: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -576,7 +576,7 @@ export default function SettingsPage() {
                         exam: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -694,7 +694,7 @@ export default function SettingsPage() {
                     type="text"
                     value={userAccount.name}
                     onChange={(e) => setUserAccount({ ...userAccount, name: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -705,7 +705,7 @@ export default function SettingsPage() {
                     type="email"
                     value={userAccount.email}
                     onChange={(e) => setUserAccount({ ...userAccount, email: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
                 <div>
@@ -716,7 +716,7 @@ export default function SettingsPage() {
                     type="tel"
                     value={userAccount.phone}
                     onChange={(e) => setUserAccount({ ...userAccount, phone: e.target.value })}
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                 </div>
               </div>
@@ -736,7 +736,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setUserAccount({ ...userAccount, currentPassword: e.target.value })
                       }
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     />
                   </div>
                   <div>
@@ -749,7 +749,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setUserAccount({ ...userAccount, newPassword: e.target.value })
                       }
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     />
                   </div>
                   <div>
@@ -762,7 +762,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setUserAccount({ ...userAccount, confirmPassword: e.target.value })
                       }
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     />
                   </div>
                 </div>
@@ -878,7 +878,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setSystemPrefs({ ...systemPrefs, backupFrequency: e.target.value })
                       }
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -897,7 +897,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setSystemPrefs({ ...systemPrefs, dataRetention: e.target.value })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     How long to keep student records after graduation
@@ -911,7 +911,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setSystemPrefs({ ...systemPrefs, theme: e.target.value })
                     }
-                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   >
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
