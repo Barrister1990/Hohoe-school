@@ -39,19 +39,27 @@ export default function LoginForm() {
     clearError();
 
     try {
-      await login({
+      const user = await login({
         email: data.email,
         password: data.password,
       });
 
-      // Redirect will happen in parent component based on auth state
-      // But we can also redirect here if needed
-      const user = useAuthStore.getState().user;
+      // Navigate based on user role after successful login
       if (user) {
         if (user.role === 'admin') {
           router.push('/admin/dashboard');
         } else {
           router.push('/teacher/dashboard');
+        }
+      } else {
+        // Fallback: if user is null, try to get from store
+        const storeUser = useAuthStore.getState().user;
+        if (storeUser) {
+          if (storeUser.role === 'admin') {
+            router.push('/admin/dashboard');
+          } else {
+            router.push('/teacher/dashboard');
+          }
         }
       }
     } catch (err) {

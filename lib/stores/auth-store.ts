@@ -12,7 +12,7 @@ interface AuthStore {
   error: string | null;
 
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User | null>;
   logout: () => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   changePassword: (email: string, request: PasswordChangeRequest) => Promise<void>;
@@ -40,12 +40,14 @@ export const useAuthStore = create<AuthStore>()((set) => ({
             isLoading: false,
             error: null,
           });
+          return response.user; // Return user for immediate use
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({
             isLoading: false,
             error: errorMessage,
             isAuthenticated: false,
+            user: null,
           });
           throw error; // Re-throw for component handling
         }
