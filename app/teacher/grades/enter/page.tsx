@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { offlineTeacherService } from '@/lib/services/offline-teacher-service';
-import { ArrowLeft, Save, Loader2, Users, BookOpen, Calendar, Filter, ClipboardList, Info } from 'lucide-react';
-import { Student, Subject, Class } from '@/types';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { calculateGrade, getGradeColorClass } from '@/lib/utils/grading';
 import { useAlert } from '@/components/shared/AlertProvider';
-import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
 import { useOfflineClasses, useOfflineStudents, useOfflineSubjects } from '@/hooks/useOfflineData';
+import { offlineTeacherService } from '@/lib/services/offline-teacher-service';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { getAcademicYearOptions } from '@/lib/utils/academic-years';
+import { calculateGrade, getGradeColorClass } from '@/lib/utils/grading';
+import { Class } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, BookOpen, Calendar, ClipboardList, Filter, Info, Loader2, Save, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 // Updated schema: assessment fields are optional, but at least one must be provided
 // Validation only checks max values when a number is entered
