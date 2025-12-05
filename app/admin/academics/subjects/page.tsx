@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Plus, MoreVertical, BookOpen, Edit } from 'lucide-react';
-import { Subject } from '@/types';
 import { useAlert } from '@/components/shared/AlertProvider';
+import { Subject } from '@/types';
+import { BookOpen, Edit, MoreVertical, Plus, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function SubjectsPage() {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function SubjectsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name or code..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+            className="w-full pl-10 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
           />
         </div>
       </div>

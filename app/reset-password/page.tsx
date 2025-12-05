@@ -52,9 +52,20 @@ function ResetPasswordContent() {
 
   const newPassword = watch('newPassword');
 
-  // Handle Supabase password reset callback (tokens in URL hash)
+  // Handle Supabase password reset callback (tokens in URL hash or code parameter)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let checkTimeoutId: NodeJS.Timeout | null = null;
+    let mounted = true;
+
     const handleAuthCallback = async () => {
+      // Set a global timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        if (mounted && loading && !isAuthenticated) {
+          setLoading(false);
+          setError('Verification is taking too long. Please ensure you clicked the complete link from your email. If the problem persists, request a new password reset.');
+        }
+      }, 5000); // 5 second timeout
       // Check if we have auth tokens in the hash (from Supabase redirect)
       if (typeof window !== 'undefined' && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -99,32 +110,70 @@ function ResetPasswordContent() {
           }
         }
       } else if (code) {
-        // If we have a code parameter, Supabase might have already set the session
-        // Check if we have an active session
+        // If we have a code parameter, try to exchange it for a session
         setLoading(true);
+        setError(null);
+        
         try {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          // First, check if Supabase has already established a session automatically
+          const { data: { session: existingSession } } = await supabase.auth.getSession();
           
-          if (session && !sessionError) {
-            // Session is already established, we're good
+          if (existingSession) {
+            // Session already exists
+            if (timeoutId) clearTimeout(timeoutId);
             setIsAuthenticated(true);
-          } else {
-            // Try to exchange the code for a session
-            // Note: Supabase password reset typically uses hash tokens, not code parameter
-            // If code is present, it might be from a different flow
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            
-            if (user && !userError) {
-              setIsAuthenticated(true);
-            } else {
-              // Code parameter without session - might need email
-              // For now, show helpful error
-              throw new Error('Please use the complete link from your email. If the link has expired, please request a new password reset.');
-            }
+            setLoading(false);
+            return;
           }
+
+          // Try to exchange the code for a session
+          // Supabase may process codes automatically, but we can also try to verify it
+          // Note: For recovery type, we typically need email, but Supabase might handle it differently
+          // Check if the code is actually a token hash that needs verification
+          try {
+            // Try using the code as a token_hash for recovery
+            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+              token_hash: code,
+              type: 'recovery',
+            });
+
+            if (!verifyError && verifyData) {
+              // Verification successful, check for session
+              const { data: { session: newSession } } = await supabase.auth.getSession();
+              if (newSession) {
+                if (timeoutId) clearTimeout(timeoutId);
+                setIsAuthenticated(true);
+                setLoading(false);
+                return;
+              }
+            }
+          } catch (verifyErr) {
+            // verifyOtp might fail if code format is wrong, that's okay
+            // We'll try other methods
+          }
+
+          // If verifyOtp didn't work, wait a moment for Supabase to auto-process
+          // Sometimes Supabase processes codes automatically on page load
+          checkTimeoutId = setTimeout(async () => {
+            if (!mounted) return;
+            
+            const { data: { session: delayedSession }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (delayedSession && !sessionError) {
+              // Session was established
+              if (timeoutId) clearTimeout(timeoutId);
+              setIsAuthenticated(true);
+              setLoading(false);
+            } else {
+              // No session after waiting
+              if (timeoutId) clearTimeout(timeoutId);
+              setError('Unable to verify reset code. The code may be invalid or expired. Supabase password reset links typically redirect with tokens in the URL hash (e.g., #access_token=...&type=recovery) rather than a "code" parameter. Please ensure you clicked the complete link from your email, or request a new password reset.');
+              setLoading(false);
+            }
+          }, 2000); // Wait 2 seconds for Supabase to auto-process
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'Invalid or expired reset code. Please request a new password reset.');
-        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
+          setError(err instanceof Error ? err.message : 'Failed to verify reset code. Please request a new password reset.');
           setLoading(false);
         }
       } else if (!token) {
@@ -134,7 +183,14 @@ function ResetPasswordContent() {
     };
 
     handleAuthCallback();
-  }, [code, token]);
+
+    // Cleanup timeouts on unmount
+    return () => {
+      mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+      if (checkTimeoutId) clearTimeout(checkTimeoutId);
+    };
+  }, [code, token, loading, isAuthenticated]);
 
   const getPasswordStrength = (password: string): { strength: string; color: string; percentage: number } => {
     if (!password) return { strength: '', color: '', percentage: 0 };
