@@ -155,6 +155,10 @@ export class OfflineStore {
 
   static async saveStudent(student: Student): Promise<void> {
     const db = getOfflineDB();
+    // Ensure id exists
+    if (!student.id) {
+      throw new Error('Student must have an id property');
+    }
     await db.put('students', student);
   }
 
@@ -217,11 +221,14 @@ export class OfflineStore {
    */
   static async saveGrade(grade: any): Promise<void> {
     const db = getOfflineDB();
-    await db.put('grades', {
+    // Ensure id exists - generate if missing
+    const gradeWithId = {
       ...grade,
-      syncStatus: 'pending' as SyncStatus,
+      id: grade.id || `grade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      syncStatus: (grade.syncStatus || 'pending') as SyncStatus,
       updatedAt: Date.now(),
-    });
+    };
+    await db.put('grades', gradeWithId);
   }
 
   static async getGrades(): Promise<any[]> {
@@ -244,11 +251,14 @@ export class OfflineStore {
    */
   static async saveAttendance(attendance: any): Promise<void> {
     const db = getOfflineDB();
-    await db.put('attendance', {
+    // Ensure id exists - generate if missing
+    const attendanceWithId = {
       ...attendance,
-      syncStatus: 'pending' as SyncStatus,
+      id: attendance.id || `attendance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      syncStatus: (attendance.syncStatus || 'pending') as SyncStatus,
       updatedAt: Date.now(),
-    });
+    };
+    await db.put('attendance', attendanceWithId);
   }
 
   static async getAttendance(): Promise<any[]> {
@@ -271,11 +281,14 @@ export class OfflineStore {
    */
   static async saveEvaluation(evaluation: any): Promise<void> {
     const db = getOfflineDB();
-    await db.put('evaluations', {
+    // Ensure id exists - generate if missing
+    const evaluationWithId = {
       ...evaluation,
-      syncStatus: 'pending' as SyncStatus,
+      id: evaluation.id || `evaluation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      syncStatus: (evaluation.syncStatus || 'pending') as SyncStatus,
       updatedAt: Date.now(),
-    });
+    };
+    await db.put('evaluations', evaluationWithId);
   }
 
   static async getEvaluations(): Promise<any[]> {

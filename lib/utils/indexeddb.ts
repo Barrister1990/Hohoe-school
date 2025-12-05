@@ -197,11 +197,25 @@ export class IndexedDBManager {
   /**
    * Put (add or update) an item
    */
-  async put<T>(storeName: string, item: T): Promise<string | number> {
+  async put<T extends Record<string, any>>(storeName: string, item: T): Promise<string | number> {
     const db = await this.ready();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
+      
+      // Validate that item has the required keyPath property
+      const storeConfig = this.config.stores.find(s => s.name === storeName);
+      if (storeConfig) {
+        const keyPath = storeConfig.keyPath;
+        if (keyPath && !item[keyPath]) {
+          reject(new Error(
+            `Item is missing required key path '${keyPath}' for store '${storeName}'. ` +
+            `Item keys: ${Object.keys(item).join(', ')}`
+          ));
+          return;
+        }
+      }
+      
       const request = store.put(item);
 
       request.onsuccess = () => {
@@ -209,7 +223,7 @@ export class IndexedDBManager {
       };
 
       request.onerror = () => {
-        reject(new Error(`Failed to put to ${storeName}: ${request.error}`));
+        reject(new Error(`Failed to put to ${storeName}: ${request.error?.message || 'Unknown error'}`));
       };
     });
   }
@@ -217,8 +231,24 @@ export class IndexedDBManager {
   /**
    * Put multiple items in a single transaction
    */
-  async putAll<T>(storeName: string, items: T[]): Promise<void> {
+  async putAll<T extends Record<string, any>>(storeName: string, items: T[]): Promise<void> {
     const db = await this.ready();
+    
+    // Validate all items have the required keyPath before starting transaction
+    const storeConfig = this.config.stores.find(s => s.name === storeName);
+    if (storeConfig) {
+      const keyPath = storeConfig.keyPath;
+      for (let index = 0; index < items.length; index++) {
+        const item = items[index];
+        if (keyPath && !item[keyPath]) {
+          throw new Error(
+            `Item at index ${index} in ${storeName} is missing required key path '${keyPath}'. ` +
+            `Item keys: ${Object.keys(item).join(', ')}`
+          );
+        }
+      }
+    }
+    
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
@@ -232,7 +262,7 @@ export class IndexedDBManager {
       };
 
       transaction.onerror = () => {
-        reject(new Error(`Failed to put all to ${storeName}: ${transaction.error}`));
+        reject(new Error(`Failed to put all to ${storeName}: ${transaction.error?.message || 'Unknown error'}`));
       };
     });
   }
