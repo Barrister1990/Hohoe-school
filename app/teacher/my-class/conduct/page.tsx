@@ -2,6 +2,7 @@
 
 import { useAlert } from '@/components/shared/AlertProvider';
 import { ClassTeacherEvaluation, ClassTeacherReward, ConductRating, InterestLevel } from '@/lib/services/evaluation-service';
+import { offlineTeacherService } from '@/lib/services/offline-teacher-service';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { getAcademicYearOptions, getCurrentAcademicYear } from '@/lib/utils/academic-years';
 import { Class, Student } from '@/types';
@@ -101,7 +102,7 @@ const rewardTypes: { value: string; label: string; icon: string }[] = [
 export default function ConductPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { showError, showSuccess } = useAlert();
+  const { showError, showSuccess, showInfo } = useAlert();
   const [classInfo, setClassInfo] = useState<Class | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [evaluations, setEvaluations] = useState<Record<string, ClassTeacherEvaluation>>({});
@@ -310,39 +311,43 @@ export default function ConductPage() {
   };
 
   const onSubmit = async (data: ConductFormData) => {
-    if (!selectedStudent || !user?.id) return;
+    if (!selectedStudent || !user?.id || !classInfo) return;
 
     setSaving(true);
     try {
-      const res = await fetch('/api/evaluations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          studentId: selectedStudent,
-          teacherId: user.id,
-          term: parseInt(data.term),
-          academicYear: data.academicYear,
-          conductRating: data.conduct ? mapConductToDb(data.conduct) : undefined,
-          conductRemarks: data.conductRemarks || undefined,
-          interestLevel: data.interest ? mapInterestToDb(data.interest) : undefined,
-          interestRemarks: data.interestRemarks || undefined,
-        }),
-      });
+      const evaluationData = {
+        studentId: selectedStudent,
+        classId: classInfo.id,
+        teacherId: user.id,
+        term: parseInt(data.term),
+        academicYear: data.academicYear,
+        conductRating: data.conduct ? mapConductToDb(data.conduct) : undefined,
+        conductRemarks: data.conductRemarks || undefined,
+        interestLevel: data.interest ? mapInterestToDb(data.interest) : undefined,
+        interestRemarks: data.interestRemarks || undefined,
+      };
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save evaluation');
-      }
+      // Use offline service - it handles online/offline automatically
+      const result = await offlineTeacherService.saveEvaluation(evaluationData);
 
-      const savedEvaluation = await res.json();
-
+      // Update local state
+      const evaluationRecord: ClassTeacherEvaluation = {
+        ...evaluationData,
+        id: result.id || `temp-${Date.now()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       setEvaluations({
         ...evaluations,
-        [selectedStudent]: savedEvaluation,
+        [selectedStudent]: evaluationRecord,
       });
 
-      showSuccess('Evaluation saved successfully!');
+      if (result.queued) {
+        showInfo('Evaluation saved locally. It will sync when you\'re back online.');
+      } else {
+        showSuccess('Evaluation saved successfully!');
+      }
+      
       setSelectedStudent(null);
     } catch (error: any) {
       console.error('Failed to save evaluation:', error);

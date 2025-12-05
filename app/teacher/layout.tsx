@@ -4,6 +4,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import DashboardNav from '@/components/layout/DashboardNav';
 import DrawerNav from '@/components/layout/DrawerNav';
 import Header from '@/components/layout/Header';
+import { OfflineBanner } from '@/components/shared/OfflineIndicator';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { UserRole } from '@/types';
 import {
@@ -147,6 +148,9 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         <DrawerNav navItems={teacherNavItems} userRole={userRole} />
         
         <div className="lg:ml-64">
+          {/* Offline Banner */}
+          <OfflineBanner />
+          
           {/* Header - Universal to all teacher routes */}
           <Header />
 

@@ -1,6 +1,10 @@
 import { AuthSessionProvider } from "@/components/auth/AuthSessionProvider";
 import { AlertProvider } from "@/components/shared/AlertProvider";
 import { InstallPrompt } from "@/components/shared/InstallPrompt";
+import { OfflineIndicator } from "@/components/shared/OfflineIndicator";
+import { ServiceWorkerRegistration } from "@/components/shared/ServiceWorkerRegistration";
+import { SyncMessageHandler } from "@/components/shared/SyncMessageHandler";
+import { SyncStatus } from "@/components/shared/SyncStatus";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -32,10 +36,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="antialiased font-sans">
+        <ServiceWorkerRegistration />
+        <ServiceWorkerRegistration />
+        <SyncMessageHandler />
         <AuthSessionProvider>
           <AlertProvider>
             {children}
             <InstallPrompt />
+            <OfflineIndicator />
+            <SyncStatus />
           </AlertProvider>
         </AuthSessionProvider>
       </body>

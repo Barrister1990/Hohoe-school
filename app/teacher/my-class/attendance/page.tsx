@@ -1,7 +1,9 @@
 'use client';
 
 import { useAlert } from '@/components/shared/AlertProvider';
+import { useOfflineClasses, useOfflineStudents } from '@/hooks/useOfflineData';
 import { Attendance } from '@/lib/services/attendance-service';
+import { offlineTeacherService } from '@/lib/services/offline-teacher-service';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { getAcademicYearOptions, getCurrentAcademicYear } from '@/lib/utils/academic-years';
 import { Class, Student } from '@/types';
@@ -24,9 +26,8 @@ type AttendanceFormData = z.infer<typeof attendanceSchema>;
 export default function AttendancePage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { showError, showSuccess } = useAlert();
+  const { showError, showSuccess, showInfo } = useAlert();
   const [classInfo, setClassInfo] = useState<Class | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, Attendance>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,99 +36,67 @@ export default function AttendancePage() {
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
   const [universalTotalDays, setUniversalTotalDays] = useState<number>(0);
 
+  // Use offline hooks for data loading
+  const { classes: teacherClasses, loading: classesLoading } = useOfflineClasses(user?.id);
+  const { students, loading: studentsLoading } = useOfflineStudents(classInfo?.id);
+
   useEffect(() => {
     if (!user?.id) return;
 
-    const loadData = async () => {
-      try {
-        // Get teacher's class
-        const classesRes = await fetch(`/api/classes/teacher/${user.id}`, { credentials: 'include' });
-        if (!classesRes.ok) {
-          throw new Error('Failed to load classes');
-        }
-        const teacherClasses = await classesRes.json();
-        const myClass = Array.isArray(teacherClasses) && teacherClasses.length > 0 ? teacherClasses[0] : null;
+    // Set class info from offline classes
+    if (teacherClasses && teacherClasses.length > 0) {
+      setClassInfo(teacherClasses[0]);
+    }
 
-        if (myClass) {
-          setClassInfo(myClass);
+    const loadAttendanceRecords = async () => {
+      if (!classInfo) return;
+
+      try {
+        const attendanceRes = await fetch(
+          `/api/attendance?classId=${classInfo.id}&term=${selectedTerm}&academicYear=${selectedAcademicYear}`,
+          { credentials: 'include' }
+        );
+        
+        if (attendanceRes.ok) {
+          const attendanceData = await attendanceRes.json();
+          const records: Record<string, Attendance> = {};
           
-          // Load students
-          let studentsData: Student[] = [];
-          const studentsRes = await fetch(`/api/students?classId=${myClass.id}`, { credentials: 'include' });
-          if (studentsRes.ok) {
-            studentsData = await studentsRes.json();
-            setStudents(Array.isArray(studentsData) ? studentsData : []);
-          } else {
-            setStudents([]);
+          // Find the most common totalDays value (universal total days)
+          const totalDaysCounts: Record<number, number> = {};
+          attendanceData.forEach((att: Attendance) => {
+            if (att.totalDays > 0) {
+              totalDaysCounts[att.totalDays] = (totalDaysCounts[att.totalDays] || 0) + 1;
+            }
+          });
+          
+          // Get the most common totalDays value
+          let mostCommonTotalDays = 0;
+          let maxCount = 0;
+          Object.entries(totalDaysCounts).forEach(([days, count]) => {
+            if (count > maxCount) {
+              maxCount = count;
+              mostCommonTotalDays = parseInt(days);
+            }
+          });
+          
+          // Set universal total days if found
+          if (mostCommonTotalDays > 0) {
+            setUniversalTotalDays(mostCommonTotalDays);
           }
           
-          // Load existing attendance records
-          const attendanceRes = await fetch(
-            `/api/attendance?classId=${myClass.id}&term=${selectedTerm}&academicYear=${selectedAcademicYear}`,
-            { credentials: 'include' }
-          );
+          attendanceData.forEach((att: Attendance) => {
+            records[att.studentId] = att;
+          });
           
-          if (attendanceRes.ok) {
-            const attendanceData = await attendanceRes.json();
-            const records: Record<string, Attendance> = {};
-            
-            // Find the most common totalDays value (universal total days)
-            const totalDaysCounts: Record<number, number> = {};
-            attendanceData.forEach((att: Attendance) => {
-              if (att.totalDays > 0) {
-                totalDaysCounts[att.totalDays] = (totalDaysCounts[att.totalDays] || 0) + 1;
-              }
-            });
-            
-            // Get the most common totalDays value
-            let mostCommonTotalDays = 0;
-            let maxCount = 0;
-            Object.entries(totalDaysCounts).forEach(([days, count]) => {
-              if (count > maxCount) {
-                maxCount = count;
-                mostCommonTotalDays = parseInt(days);
-              }
-            });
-            
-            // Set universal total days if found
-            if (mostCommonTotalDays > 0) {
-              setUniversalTotalDays(mostCommonTotalDays);
-            }
-            
-            attendanceData.forEach((att: Attendance) => {
-              records[att.studentId] = att;
-            });
-            
-            // Initialize empty records for students without attendance
-            studentsData.forEach((student: Student) => {
-              if (!records[student.id]) {
-                records[student.id] = {
-                  id: '',
-                  studentId: student.id,
-                  academicYear: selectedAcademicYear,
-                  term: parseInt(selectedTerm),
-                  totalDays: mostCommonTotalDays || 0,
-                  presentDays: 0,
-                  absentDays: 0,
-                  lateDays: 0,
-                  excusedDays: 0,
-                  attendancePercentage: 0,
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                };
-              }
-            });
-            setAttendanceRecords(records);
-          } else {
-            // Initialize empty records
-            const records: Record<string, Attendance> = {};
-            studentsData.forEach((student: Student) => {
+          // Initialize empty records for students without attendance
+          students.forEach((student: Student) => {
+            if (!records[student.id]) {
               records[student.id] = {
                 id: '',
                 studentId: student.id,
                 academicYear: selectedAcademicYear,
                 term: parseInt(selectedTerm),
-                totalDays: 0,
+                totalDays: mostCommonTotalDays || 0,
                 presentDays: 0,
                 absentDays: 0,
                 lateDays: 0,
@@ -136,20 +105,41 @@ export default function AttendancePage() {
                 createdAt: new Date(),
                 updatedAt: new Date(),
               };
-            });
-            setAttendanceRecords(records);
-          }
+            }
+          });
+          setAttendanceRecords(records);
+        } else {
+          // Initialize empty records
+          const records: Record<string, Attendance> = {};
+          students.forEach((student: Student) => {
+            records[student.id] = {
+              id: '',
+              studentId: student.id,
+              academicYear: selectedAcademicYear,
+              term: parseInt(selectedTerm),
+              totalDays: 0,
+              presentDays: 0,
+              absentDays: 0,
+              lateDays: 0,
+              excusedDays: 0,
+              attendancePercentage: 0,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+          });
+          setAttendanceRecords(records);
         }
-      } catch (error: any) {
-        console.error('Failed to load data:', error);
-        showError(error.message || 'Failed to load data. Please try again.');
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        console.warn('Failed to load attendance records, will use cached data:', error);
       }
     };
 
-    loadData();
-  }, [user?.id, selectedTerm, selectedAcademicYear]);
+    if (classInfo) {
+      loadAttendanceRecords();
+    }
+
+    setLoading(classesLoading || studentsLoading);
+  }, [user?.id, teacherClasses, classInfo, students, selectedTerm, selectedAcademicYear, classesLoading, studentsLoading]);
 
   const {
     register,
@@ -204,7 +194,7 @@ export default function AttendancePage() {
   };
 
   const onSubmit = async (data: AttendanceFormData) => {
-    if (!selectedStudent) return;
+    if (!selectedStudent || !classInfo) return;
 
     setSaving(true);
     try {
@@ -216,35 +206,41 @@ export default function AttendancePage() {
         setUniversalTotalDays(data.totalDays);
       }
 
-      const res = await fetch('/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          studentId: selectedStudent,
-          term: parseInt(data.term),
-          academicYear: data.academicYear,
-          totalDays: data.totalDays,
-          presentDays: data.daysPresent,
-          absentDays: absentDays,
-          lateDays: 0,
-          excusedDays: 0,
-        }),
-      });
+      const attendanceData = {
+        studentId: selectedStudent,
+        classId: classInfo.id,
+        term: parseInt(data.term),
+        academicYear: data.academicYear,
+        totalDays: data.totalDays,
+        presentDays: data.daysPresent,
+        absentDays: absentDays,
+        lateDays: 0,
+        excusedDays: 0,
+        date: new Date().toISOString().split('T')[0], // Today's date
+      };
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save attendance');
-      }
+      // Use offline service - it handles online/offline automatically
+      const result = await offlineTeacherService.saveAttendance(attendanceData);
 
-      const savedAttendance = await res.json();
-
+      // Update local state
+      const attendanceRecord: Attendance = {
+        ...attendanceData,
+        id: result.id || `temp-${Date.now()}`,
+        attendancePercentage: (data.daysPresent / data.totalDays) * 100,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       setAttendanceRecords({
         ...attendanceRecords,
-        [selectedStudent]: savedAttendance,
+        [selectedStudent]: attendanceRecord,
       });
 
-      showSuccess('Attendance saved successfully!');
+      if (result.queued) {
+        showInfo('Attendance saved locally. It will sync when you\'re back online.');
+      } else {
+        showSuccess('Attendance saved successfully!');
+      }
+      
       setSelectedStudent(null);
     } catch (error: any) {
       console.error('Failed to save attendance:', error);

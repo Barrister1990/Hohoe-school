@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { offlineTeacherService } from '@/lib/services/offline-teacher-service';
 import { ArrowLeft, Save, Loader2, Users, BookOpen, Calendar, Filter, ClipboardList, Info } from 'lucide-react';
 import { Student, Subject, Class } from '@/types';
 import { useForm, Controller } from 'react-hook-form';
@@ -11,6 +12,7 @@ import { z } from 'zod';
 import { calculateGrade, getGradeColorClass } from '@/lib/utils/grading';
 import { useAlert } from '@/components/shared/AlertProvider';
 import { getCurrentAcademicYear, getAcademicYearOptions } from '@/lib/utils/academic-years';
+import { useOfflineClasses, useOfflineStudents, useOfflineSubjects } from '@/hooks/useOfflineData';
 
 // Updated schema: assessment fields are optional, but at least one must be provided
 // Validation only checks max values when a number is entered
@@ -70,10 +72,7 @@ interface ExistingGrade {
 export default function EnterGradesPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { showError, showSuccess, showWarning } = useAlert();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
+  const { showError, showSuccess, showWarning, showInfo } = useAlert();
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
@@ -82,6 +81,11 @@ export default function EnterGradesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadingGrade, setLoadingGrade] = useState(false);
+
+  // Use offline hooks for data loading
+  const { classes, loading: classesLoading } = useOfflineClasses();
+  const { students, loading: studentsLoading } = useOfflineStudents(selectedClass);
+  const { subjects, loading: subjectsLoading } = useOfflineSubjects();
 
   const {
     register,
@@ -139,48 +143,14 @@ export default function EnterGradesPage() {
           ? [...new Set(teacherAssignments.map((a: any) => a.classId))]
           : [];
         
-        if (classIds.length > 0) {
-          const classesRes = await fetch('/api/classes', { credentials: 'include' });
-          if (classesRes.ok) {
-            const allClasses = await classesRes.json();
-            const relevantClasses = Array.isArray(allClasses)
-              ? allClasses.filter((c: Class) => classIds.includes(c.id))
-              : [];
-            setClasses(relevantClasses);
-
-            // Set default class if teacher has only one class
-            if (relevantClasses.length === 1) {
-              setSelectedClass(relevantClasses[0].id);
-              setValue('classId', relevantClasses[0].id);
-            }
+        // Note: Classes, subjects, and students are now loaded via offline hooks
+        // We just need to set the default class if teacher has only one class
+        if (classIds.length === 1 && classes.length > 0) {
+          const relevantClass = classes.find((c: Class) => c.id === classIds[0]);
+          if (relevantClass) {
+            setSelectedClass(relevantClass.id);
+            setValue('classId', relevantClass.id);
           }
-        }
-
-        // Load subjects
-        const subjectsRes = await fetch('/api/subjects', { credentials: 'include' });
-        if (subjectsRes.ok) {
-          const allSubjects = await subjectsRes.json();
-          const relevantSubjects = teacherAssignments.length > 0
-            ? Array.isArray(allSubjects)
-              ? allSubjects.filter((s: Subject) =>
-                  teacherAssignments.some((a: any) => a.subjectId === s.id)
-                )
-              : []
-            : [];
-          setSubjects(relevantSubjects);
-        }
-
-        // Load students for assigned classes
-        if (classIds.length > 0) {
-          const studentPromises = classIds.map((classId: string) =>
-            fetch(`/api/students?classId=${classId}`, { credentials: 'include' })
-          );
-          const studentResponses = await Promise.all(studentPromises);
-          const studentDataArrays = await Promise.all(
-            studentResponses.map((res) => res.ok ? res.json() : Promise.resolve([]))
-          );
-          const relevantStudents = studentDataArrays.flat();
-          setStudents(Array.isArray(relevantStudents) ? relevantStudents : []);
         }
       } catch (error: any) {
         console.error('Failed to load data:', error);
@@ -301,41 +271,36 @@ export default function EnterGradesPage() {
 
     setSaving(true);
     try {
-      const gradeRes = await fetch('/api/grades', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          studentId: data.studentId,
-          subjectId: data.subjectId,
-          classId: selectedClass,
-          teacherId: user.id,
-          term: parseInt(data.term),
-          academicYear: data.academicYear,
-          project: data.project,
-          test1: data.test1,
-          test2: data.test2,
-          groupWork: data.groupWork,
-          exam: data.exam,
-        }),
-      });
+      const gradeData = {
+        studentId: data.studentId,
+        subjectId: data.subjectId,
+        classId: selectedClass,
+        teacherId: user.id,
+        term: parseInt(data.term),
+        academicYear: data.academicYear,
+        project: data.project || 0,
+        test1: data.test1 || 0,
+        test2: data.test2 || 0,
+        groupWork: data.groupWork || 0,
+        exam: data.exam || 0,
+      };
 
-      if (!gradeRes.ok) {
-        const errorData = await gradeRes.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save grades');
+      // Use offline service - it handles online/offline automatically
+      const result = await offlineTeacherService.saveGrade(gradeData);
+
+      if (result.queued) {
+        showInfo('Grades saved locally. They will sync when you\'re back online.');
+      } else {
+        showSuccess(existingGrade ? 'Grades updated successfully!' : 'Grades saved successfully!');
       }
-
-      const savedGrade = await gradeRes.json();
-
-      showSuccess(existingGrade ? 'Grades updated successfully!' : 'Grades saved successfully!');
       
       // Update existing grade state
       const updatedGrade: ExistingGrade = {
-        project: savedGrade.project || 0,
-        test1: savedGrade.test1 || 0,
-        test2: savedGrade.test2 || 0,
-        groupWork: savedGrade.groupWork || 0,
-        exam: savedGrade.exam || 0,
+        project: gradeData.project,
+        test1: gradeData.test1,
+        test2: gradeData.test2,
+        groupWork: gradeData.groupWork,
+        exam: gradeData.exam,
       };
       setExistingGrade(updatedGrade);
       
