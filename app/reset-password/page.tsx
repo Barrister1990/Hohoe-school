@@ -126,45 +126,28 @@ function ResetPasswordContent() {
             return;
           }
 
-          // Try to verify the code using verifyOtp with token_hash
-          // Note: token_hash doesn't require email, unlike token parameter
-          const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: code,
-            type: 'recovery',
-          });
+          // When using {{ .ConfirmationURL }}, Supabase redirects with a 'code' parameter
+          // This is the CORRECT format - we need to exchange the code for a session
+          // Use exchangeCodeForSession to authenticate the user
+          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-          if (verifyError || !verifyData) {
-            // Verification failed
+          if (exchangeError || !exchangeData.session) {
+            // Exchange failed - the code may be invalid or expired
             if (timeoutId) clearTimeout(timeoutId);
-            const errorMsg = verifyError?.message || 'Unknown error';
-            console.error('Password reset code verification failed:', {
+            const errorMsg = exchangeError?.message || 'Invalid or expired reset code';
+            console.error('Password reset code exchange failed:', {
               code,
-              error: verifyError?.message,
+              error: exchangeError?.message,
             });
-            setError(`Unable to verify reset code: ${errorMsg}. The code may be invalid, expired, or the link format is incorrect. Please request a new password reset.`);
+            setError(`Unable to verify reset code: ${errorMsg}. The code may be invalid or expired. Please request a new password reset.`);
             setLoading(false);
             return;
           }
 
-          // Verification succeeded, check for session
-          const { data: { session: newSession } } = await supabase.auth.getSession();
-          if (newSession) {
-            if (timeoutId) clearTimeout(timeoutId);
-            setIsAuthenticated(true);
-            setLoading(false);
-            return;
-          }
-
-          // If verification succeeded but no session yet, wait a moment and check again
-          // Sometimes Supabase needs a moment to establish the session
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const { data: { session: delayedSession } } = await supabase.auth.getSession();
-          if (delayedSession) {
-            if (timeoutId) clearTimeout(timeoutId);
-            setIsAuthenticated(true);
-            setLoading(false);
-            return;
-          }
+          // Exchange succeeded - session is now established
+          if (timeoutId) clearTimeout(timeoutId);
+          setIsAuthenticated(true);
+          setLoading(false);
 
           // If we get here, verification succeeded but no session was created
           // This shouldn't happen, but let's wait a moment and check again

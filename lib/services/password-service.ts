@@ -44,6 +44,8 @@ class PasswordService {
   async requestPasswordReset(email: string): Promise<void> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://hohoe-school.vercel.app'}/reset-password`,
+      // Note: Supabase should redirect with hash tokens (#access_token=...&type=recovery)
+      // If you're getting a 'code' parameter, check your Supabase email template configuration
     });
 
     if (error) {

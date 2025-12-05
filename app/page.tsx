@@ -110,7 +110,7 @@ function HomeContent() {
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
               <div className="relative w-16 h-16 sm:w-20 sm:h-20">
-                <Image
+            <Image
                   src="/logo.png"
                   alt="Hohoe E.P Basic A Logo"
                   fill
