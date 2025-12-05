@@ -91,7 +91,20 @@ const DB_CONFIG: IDBConfig = {
 };
 
 // Initialize database
-export const offlineDB = IndexedDBManager.getInstance(DB_CONFIG);
+// Lazy initialization - only initialize on client side
+let offlineDBInstance: IndexedDBManager | null = null;
+
+const getOfflineDB = (): IndexedDBManager => {
+  if (typeof window === 'undefined') {
+    throw new Error('IndexedDB can only be used in the browser. Make sure to call this only in client components.');
+  }
+  
+  if (!offlineDBInstance) {
+    offlineDBInstance = IndexedDBManager.getInstance(DB_CONFIG);
+  }
+  
+  return offlineDBInstance;
+};
 
 /**
  * Sync Status Types
@@ -121,75 +134,90 @@ export class OfflineStore {
    * Students
    */
   static async saveStudents(students: Student[]): Promise<void> {
-    await offlineDB.putAll('students', students);
+    const db = getOfflineDB();
+    await db.putAll('students', students);
   }
 
   static async getStudents(): Promise<Student[]> {
-    return offlineDB.getAll<Student>('students');
+    const db = getOfflineDB();
+    return db.getAll<Student>('students');
   }
 
   static async getStudentsByClass(classId: string): Promise<Student[]> {
-    return offlineDB.getByIndex<Student>('students', 'classId', classId);
+    const db = getOfflineDB();
+    return db.getByIndex<Student>('students', 'classId', classId);
   }
 
   static async getStudent(id: string): Promise<Student | undefined> {
-    return offlineDB.get<Student>('students', id);
+    const db = getOfflineDB();
+    return db.get<Student>('students', id);
   }
 
   static async saveStudent(student: Student): Promise<void> {
-    await offlineDB.put('students', student);
+    const db = getOfflineDB();
+    await db.put('students', student);
   }
 
   /**
    * Classes
    */
   static async saveClasses(classes: Class[]): Promise<void> {
-    await offlineDB.putAll('classes', classes);
+    const db = getOfflineDB();
+    await db.putAll('classes', classes);
   }
 
   static async getClasses(): Promise<Class[]> {
-    return offlineDB.getAll<Class>('classes');
+    const db = getOfflineDB();
+    return db.getAll<Class>('classes');
   }
 
   static async getClass(id: string): Promise<Class | undefined> {
-    return offlineDB.get<Class>('classes', id);
+    const db = getOfflineDB();
+    return db.get<Class>('classes', id);
   }
 
   /**
    * Subjects
    */
   static async saveSubjects(subjects: Subject[]): Promise<void> {
-    await offlineDB.putAll('subjects', subjects);
+    const db = getOfflineDB();
+    await db.putAll('subjects', subjects);
   }
 
   static async getSubjects(): Promise<Subject[]> {
-    return offlineDB.getAll<Subject>('subjects');
+    const db = getOfflineDB();
+    return db.getAll<Subject>('subjects');
   }
 
   static async getSubject(id: string): Promise<Subject | undefined> {
-    return offlineDB.get<Subject>('subjects', id);
+    const db = getOfflineDB();
+    return db.get<Subject>('subjects', id);
   }
 
   /**
    * Subject Assignments
    */
   static async saveSubjectAssignments(assignments: any[]): Promise<void> {
-    await offlineDB.putAll('subjectAssignments', assignments);
+    const db = getOfflineDB();
+    await db.putAll('subjectAssignments', assignments);
   }
 
   static async getSubjectAssignments(): Promise<any[]> {
-    return offlineDB.getAll('subjectAssignments');
+    const db = getOfflineDB();
+    return db.getAll('subjectAssignments');
   }
 
   static async getSubjectAssignmentsByTeacher(teacherId: string): Promise<any[]> {
-    return offlineDB.getByIndex('subjectAssignments', 'teacherId', teacherId);
+    const db = getOfflineDB();
+    return db.getByIndex('subjectAssignments', 'teacherId', teacherId);
   }
 
   /**
    * Grades
    */
   static async saveGrade(grade: any): Promise<void> {
-    await offlineDB.put('grades', {
+    const db = getOfflineDB();
+    await db.put('grades', {
       ...grade,
       syncStatus: 'pending' as SyncStatus,
       updatedAt: Date.now(),
@@ -197,22 +225,26 @@ export class OfflineStore {
   }
 
   static async getGrades(): Promise<any[]> {
-    return offlineDB.getAll('grades');
+    const db = getOfflineDB();
+    return db.getAll('grades');
   }
 
   static async getGradesByStudent(studentId: string): Promise<any[]> {
-    return offlineDB.getByIndex('grades', 'studentId', studentId);
+    const db = getOfflineDB();
+    return db.getByIndex('grades', 'studentId', studentId);
   }
 
   static async getPendingGrades(): Promise<any[]> {
-    return offlineDB.getByIndex('grades', 'syncStatus', 'pending');
+    const db = getOfflineDB();
+    return db.getByIndex('grades', 'syncStatus', 'pending');
   }
 
   /**
    * Attendance
    */
   static async saveAttendance(attendance: any): Promise<void> {
-    await offlineDB.put('attendance', {
+    const db = getOfflineDB();
+    await db.put('attendance', {
       ...attendance,
       syncStatus: 'pending' as SyncStatus,
       updatedAt: Date.now(),
@@ -220,22 +252,26 @@ export class OfflineStore {
   }
 
   static async getAttendance(): Promise<any[]> {
-    return offlineDB.getAll('attendance');
+    const db = getOfflineDB();
+    return db.getAll('attendance');
   }
 
   static async getAttendanceByStudent(studentId: string): Promise<any[]> {
-    return offlineDB.getByIndex('attendance', 'studentId', studentId);
+    const db = getOfflineDB();
+    return db.getByIndex('attendance', 'studentId', studentId);
   }
 
   static async getPendingAttendance(): Promise<any[]> {
-    return offlineDB.getByIndex('attendance', 'syncStatus', 'pending');
+    const db = getOfflineDB();
+    return db.getByIndex('attendance', 'syncStatus', 'pending');
   }
 
   /**
    * Evaluations
    */
   static async saveEvaluation(evaluation: any): Promise<void> {
-    await offlineDB.put('evaluations', {
+    const db = getOfflineDB();
+    await db.put('evaluations', {
       ...evaluation,
       syncStatus: 'pending' as SyncStatus,
       updatedAt: Date.now(),
@@ -243,21 +279,25 @@ export class OfflineStore {
   }
 
   static async getEvaluations(): Promise<any[]> {
-    return offlineDB.getAll('evaluations');
+    const db = getOfflineDB();
+    return db.getAll('evaluations');
   }
 
   static async getEvaluationsByStudent(studentId: string): Promise<any[]> {
-    return offlineDB.getByIndex('evaluations', 'studentId', studentId);
+    const db = getOfflineDB();
+    return db.getByIndex('evaluations', 'studentId', studentId);
   }
 
   static async getPendingEvaluations(): Promise<any[]> {
-    return offlineDB.getByIndex('evaluations', 'syncStatus', 'pending');
+    const db = getOfflineDB();
+    return db.getByIndex('evaluations', 'syncStatus', 'pending');
   }
 
   /**
    * Sync Queue
    */
   static async addToSyncQueue(item: Omit<SyncQueueItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const db = getOfflineDB();
     const id = `sync-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const queueItem: SyncQueueItem = {
       ...item,
@@ -265,22 +305,25 @@ export class OfflineStore {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    await offlineDB.put('syncQueue', queueItem);
+    await db.put('syncQueue', queueItem);
     return id;
   }
 
   static async getSyncQueue(): Promise<SyncQueueItem[]> {
-    return offlineDB.getAll<SyncQueueItem>('syncQueue');
+    const db = getOfflineDB();
+    return db.getAll<SyncQueueItem>('syncQueue');
   }
 
   static async getPendingSyncItems(): Promise<SyncQueueItem[]> {
-    return offlineDB.getByIndex<SyncQueueItem>('syncQueue', 'status', 'pending');
+    const db = getOfflineDB();
+    return db.getByIndex<SyncQueueItem>('syncQueue', 'status', 'pending');
   }
 
   static async updateSyncQueueItem(id: string, updates: Partial<SyncQueueItem>): Promise<void> {
-    const item = await offlineDB.get<SyncQueueItem>('syncQueue', id);
+    const db = getOfflineDB();
+    const item = await db.get<SyncQueueItem>('syncQueue', id);
     if (item) {
-      await offlineDB.put('syncQueue', {
+      await db.put('syncQueue', {
         ...item,
         ...updates,
         updatedAt: Date.now(),
@@ -289,22 +332,24 @@ export class OfflineStore {
   }
 
   static async removeSyncQueueItem(id: string): Promise<void> {
-    await offlineDB.delete('syncQueue', id);
+    const db = getOfflineDB();
+    await db.delete('syncQueue', id);
   }
 
   /**
    * Clear all data (for testing/logout)
    */
   static async clearAll(): Promise<void> {
+    const db = getOfflineDB();
     await Promise.all([
-      offlineDB.clear('students'),
-      offlineDB.clear('classes'),
-      offlineDB.clear('subjects'),
-      offlineDB.clear('subjectAssignments'),
-      offlineDB.clear('grades'),
-      offlineDB.clear('attendance'),
-      offlineDB.clear('evaluations'),
-      offlineDB.clear('syncQueue'),
+      db.clear('students'),
+      db.clear('classes'),
+      db.clear('subjects'),
+      db.clear('subjectAssignments'),
+      db.clear('grades'),
+      db.clear('attendance'),
+      db.clear('evaluations'),
+      db.clear('syncQueue'),
     ]);
   }
 }

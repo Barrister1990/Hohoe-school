@@ -33,6 +33,11 @@ export class IndexedDBManager {
   }
 
   static getInstance(config?: IDBConfig): IndexedDBManager {
+    // Check if we're on the server side
+    if (typeof window === 'undefined') {
+      throw new Error('IndexedDB can only be used in the browser. Make sure to call this only in client components.');
+    }
+
     if (!IndexedDBManager.instance) {
       if (!config) {
         throw new Error('IndexedDB config is required for first initialization');

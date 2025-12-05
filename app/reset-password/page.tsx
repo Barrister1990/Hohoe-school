@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { passwordService } from '@/lib/services/password-service';
 import { supabase } from '@/lib/supabase/client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckCircle, Eye, EyeOff, Lock } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const resetPasswordSchema = z
   .object({
@@ -110,7 +110,7 @@ function ResetPasswordContent() {
           }
         }
       } else if (code) {
-        // If we have a code parameter, try to exchange it for a session
+        // If we have a code parameter, verify it and establish a session
         setLoading(true);
         setError(null);
         
@@ -126,34 +126,48 @@ function ResetPasswordContent() {
             return;
           }
 
-          // Try to exchange the code for a session
-          // Supabase may process codes automatically, but we can also try to verify it
-          // Note: For recovery type, we typically need email, but Supabase might handle it differently
-          // Check if the code is actually a token hash that needs verification
-          try {
-            // Try using the code as a token_hash for recovery
-            const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-              token_hash: code,
-              type: 'recovery',
-            });
+          // Try to verify the code using verifyOtp with token_hash
+          // Note: token_hash doesn't require email, unlike token parameter
+          const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: code,
+            type: 'recovery',
+          });
 
-            if (!verifyError && verifyData) {
-              // Verification successful, check for session
-              const { data: { session: newSession } } = await supabase.auth.getSession();
-              if (newSession) {
-                if (timeoutId) clearTimeout(timeoutId);
-                setIsAuthenticated(true);
-                setLoading(false);
-                return;
-              }
-            }
-          } catch (verifyErr) {
-            // verifyOtp might fail if code format is wrong, that's okay
-            // We'll try other methods
+          if (verifyError || !verifyData) {
+            // Verification failed
+            if (timeoutId) clearTimeout(timeoutId);
+            const errorMsg = verifyError?.message || 'Unknown error';
+            console.error('Password reset code verification failed:', {
+              code,
+              error: verifyError?.message,
+            });
+            setError(`Unable to verify reset code: ${errorMsg}. The code may be invalid, expired, or the link format is incorrect. Please request a new password reset.`);
+            setLoading(false);
+            return;
           }
 
-          // If verifyOtp didn't work, wait a moment for Supabase to auto-process
-          // Sometimes Supabase processes codes automatically on page load
+          // Verification succeeded, check for session
+          const { data: { session: newSession } } = await supabase.auth.getSession();
+          if (newSession) {
+            if (timeoutId) clearTimeout(timeoutId);
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          }
+
+          // If verification succeeded but no session yet, wait a moment and check again
+          // Sometimes Supabase needs a moment to establish the session
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data: { session: delayedSession } } = await supabase.auth.getSession();
+          if (delayedSession) {
+            if (timeoutId) clearTimeout(timeoutId);
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          }
+
+          // If we get here, verification succeeded but no session was created
+          // This shouldn't happen, but let's wait a moment and check again
           checkTimeoutId = setTimeout(async () => {
             if (!mounted) return;
             
@@ -165,12 +179,12 @@ function ResetPasswordContent() {
               setIsAuthenticated(true);
               setLoading(false);
             } else {
-              // No session after waiting
+              // No session after verification - this is unusual
               if (timeoutId) clearTimeout(timeoutId);
-              setError('Unable to verify reset code. The code may be invalid or expired. Supabase password reset links typically redirect with tokens in the URL hash (e.g., #access_token=...&type=recovery) rather than a "code" parameter. Please ensure you clicked the complete link from your email, or request a new password reset.');
+              setError('Code verified but session not established. Please try refreshing the page or request a new password reset.');
               setLoading(false);
             }
-          }, 2000); // Wait 2 seconds for Supabase to auto-process
+          }, 1000); // Wait 1 second for session to be established
         } catch (err) {
           if (timeoutId) clearTimeout(timeoutId);
           setError(err instanceof Error ? err.message : 'Failed to verify reset code. Please request a new password reset.');

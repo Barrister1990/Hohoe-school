@@ -43,7 +43,7 @@ class PasswordService {
    */
   async requestPasswordReset(email: string): Promise<void> {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://hohoe-school.vercel.app'}/reset-password`,
     });
 
     if (error) {
