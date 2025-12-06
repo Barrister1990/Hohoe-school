@@ -134,25 +134,24 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       // Sign out from Supabase Auth (this clears the session and cookies)
-      // Use Promise.race with timeout to prevent hanging
+      // Use a shorter timeout since we're doing this in background
       const signOutPromise = supabase.auth.signOut();
       const timeoutPromise = new Promise<{ error: null }>((resolve) => {
         setTimeout(() => {
           console.warn('Logout timeout - proceeding anyway');
           resolve({ error: null });
-        }, 2000); // 2 second timeout
+        }, 1500); // 1.5 second timeout (reduced from 2s)
       });
       
       const result = await Promise.race([signOutPromise, timeoutPromise]);
       
       if (result?.error) {
         console.error('Logout error:', result.error);
-        // Don't throw error - still clear local state even if signOut fails
-        // This ensures user can still logout even if there's a network issue
+        // Don't throw error - state is already cleared
       }
     } catch (error) {
       console.error('Logout error:', error);
-      // Don't throw - ensure logout completes even if there's an error
+      // Don't throw - state is already cleared, this is background cleanup
     }
   }
 

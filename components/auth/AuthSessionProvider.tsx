@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase/client';
  * Wraps the app to handle session persistence across page refreshes
  */
 export function AuthSessionProvider({ children }: { children: React.ReactNode }) {
-  const { setUser } = useAuthStore();
+  const { setUser, user: currentUser } = useAuthStore();
 
   useEffect(() => {
     let mounted = true;
@@ -42,18 +42,29 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
       if (!mounted) return;
 
       if (event === 'SIGNED_IN' && session) {
-        const user = await authService.getCurrentUser();
-        if (user) {
-          setUser(user);
+        // Only fetch user if not already set (login() already sets it)
+        // This avoids duplicate API calls during login
+        // Check current user from store state
+        const storeState = useAuthStore.getState();
+        if (!storeState.user) {
+          const user = await authService.getCurrentUser();
+          if (user && mounted) {
+            setUser(user);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Refresh user data when token is refreshed
-        const user = await authService.getCurrentUser();
-        if (user) {
-          setUser(user);
-        }
+        // Refresh user data when token is refreshed (background operation)
+        // Defer to avoid blocking UI
+        setTimeout(async () => {
+          if (mounted) {
+            const user = await authService.getCurrentUser();
+            if (user && mounted) {
+              setUser(user);
+            }
+          }
+        }, 100);
       }
     });
 

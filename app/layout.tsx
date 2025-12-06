@@ -37,7 +37,6 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="antialiased font-sans">
         <ServiceWorkerRegistration />
-        <ServiceWorkerRegistration />
         <SyncMessageHandler />
         <AuthSessionProvider>
           <AlertProvider>

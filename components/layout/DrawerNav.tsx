@@ -25,20 +25,11 @@ export default function DrawerNav({ navItems, userRole }: DrawerNavProps) {
   const pathname = usePathname();
   const { logout, user } = useAuthStore();
 
-  const handleLogout = async () => {
-    try {
-      setIsOpen(false);
-      await logout();
-      // Use router.push for better Next.js integration
-      router.push('/');
-      // Force a refresh to ensure all state is cleared
-      router.refresh();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, redirect to home
-      router.push('/');
-      router.refresh();
-    }
+  const handleLogout = () => {
+    setIsOpen(false);
+    // Clear state and redirect immediately (logout happens in background)
+    logout();
+    router.push('/');
   };
 
   // Check if user has access to a role

@@ -13,16 +13,8 @@ function HomeContent() {
   const { isAuthenticated, user } = useAuthStore();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // Redirect based on role
-      if (user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/teacher/dashboard');
-      }
-    }
-  }, [isAuthenticated, user, router]);
+  // Note: Redirect after login is handled by LoginForm component
+  // This useEffect is removed to avoid double redirects and delays
 
   useEffect(() => {
     // Check for success query parameters

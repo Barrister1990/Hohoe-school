@@ -64,34 +64,20 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       },
 
       logout: async () => {
-        set({ isLoading: true });
-        try {
-          // Use Promise.race with timeout to prevent hanging
-          const logoutPromise = authService.logout();
-          const timeoutPromise = new Promise<void>((resolve) => {
-            setTimeout(() => resolve(), 3000); // 3 second timeout
-          });
-          
-          await Promise.race([logoutPromise, timeoutPromise]);
-          
-          // Always clear state, even if logout timed out or failed
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        } catch (error) {
-          // Even if logout fails, clear the state
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        }
+        // Clear state immediately for instant UI feedback
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+        
+        // Perform logout in background (don't await - let it happen async)
+        // This allows immediate redirect while cleanup happens in background
+        authService.logout().catch((error) => {
+          console.error('Background logout error (non-blocking):', error);
+        });
       },
 
       verifyEmail: async (token: string) => {

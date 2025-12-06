@@ -16,20 +16,11 @@ export default function Header({ title }: HeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleLogout = async () => {
-    try {
-      setShowProfileMenu(false);
-      await logout();
-      // Use router.push for better Next.js integration
-      router.push('/');
-      // Force a refresh to ensure all state is cleared
-      router.refresh();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, redirect to home
-      router.push('/');
-      router.refresh();
-    }
+  const handleLogout = () => {
+    setShowProfileMenu(false);
+    // Clear state and redirect immediately (logout happens in background)
+    logout();
+    router.push('/');
   };
 
   return (

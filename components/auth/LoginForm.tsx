@@ -44,23 +44,12 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Navigate based on user role after successful login
-      if (user) {
-        if (user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/teacher/dashboard');
-        }
+      // Navigate immediately based on user role (user is guaranteed to exist after successful login)
+      // Use replace instead of push to avoid adding login page to history
+      if (user.role === 'admin') {
+        router.replace('/admin/dashboard');
       } else {
-        // Fallback: if user is null, try to get from store
-        const storeUser = useAuthStore.getState().user;
-        if (storeUser) {
-          if (storeUser.role === 'admin') {
-            router.push('/admin/dashboard');
-          } else {
-            router.push('/teacher/dashboard');
-          }
-        }
+        router.replace('/teacher/dashboard');
       }
     } catch (err) {
       const errorMessage = formatError(err);

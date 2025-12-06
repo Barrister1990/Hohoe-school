@@ -17,32 +17,46 @@ export function InstallPrompt() {
   const { showInfo } = useAlert();
 
   useEffect(() => {
-    // Check if already installed (standalone mode)
-    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true ||
-      document.referrer.includes('android-app://');
-    
-    setIsStandalone(isStandaloneMode);
+    // Defer initialization to avoid blocking navigation
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const initPrompt = () => {
+      // Check if already installed (standalone mode)
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://');
+      
+      setIsStandalone(isStandaloneMode);
 
-    // Detect iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(iOS);
+      // Detect iOS
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      setIsIOS(iOS);
 
-    // Check if prompt was dismissed before (localStorage)
-    const promptDismissed = localStorage.getItem('install-prompt-dismissed');
-    const promptDismissedTime = promptDismissed ? parseInt(promptDismissed, 10) : 0;
-    const daysSinceDismissed = (Date.now() - promptDismissedTime) / (1000 * 60 * 60 * 24);
+      // Check if prompt was dismissed before (localStorage)
+      const promptDismissed = localStorage.getItem('install-prompt-dismissed');
+      const promptDismissedTime = promptDismissed ? parseInt(promptDismissed, 10) : 0;
+      const daysSinceDismissed = (Date.now() - promptDismissedTime) / (1000 * 60 * 60 * 24);
 
-    // Show prompt if:
-    // 1. Not in standalone mode
-    // 2. Prompt wasn't dismissed in last 7 days
-    // 3. Either iOS or Android/Chrome
-    if (!isStandaloneMode && (daysSinceDismissed > 7 || !promptDismissed)) {
-      // Delay showing prompt by 3 seconds after page load
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
+      // Show prompt if:
+      // 1. Not in standalone mode
+      // 2. Prompt wasn't dismissed in last 7 days
+      // 3. Either iOS or Android/Chrome
+      if (!isStandaloneMode && (daysSinceDismissed > 7 || !promptDismissed)) {
+        // Delay showing prompt by 3 seconds after page load
+        const timer = setTimeout(() => {
+          setShowPrompt(true);
+        }, 3000);
 
+        return () => clearTimeout(timer);
+      }
+    };
+
+    // Use requestIdleCallback to defer initialization until browser is idle
+    if ('requestIdleCallback' in window) {
+      const idleCallback = (window as any).requestIdleCallback(initPrompt, { timeout: 1000 });
+      return () => (window as any).cancelIdleCallback(idleCallback);
+    } else {
+      // Fallback to setTimeout for browsers without requestIdleCallback
+      const timer = setTimeout(initPrompt, 100);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -50,8 +64,23 @@ export function InstallPrompt() {
   useEffect(() => {
     // Listen for beforeinstallprompt event (Android/Chrome)
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      // Check if we should show the prompt
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes('android-app://');
+      
+      const promptDismissed = localStorage.getItem('install-prompt-dismissed');
+      const promptDismissedTime = promptDismissed ? parseInt(promptDismissed, 10) : 0;
+      const daysSinceDismissed = (Date.now() - promptDismissedTime) / (1000 * 60 * 60 * 24);
+      
+      // Only prevent default if we're going to show our custom prompt
+      if (!isStandaloneMode && (daysSinceDismissed > 7 || !promptDismissed)) {
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
+        // Ensure prompt will be shown (either immediately or after delay)
+        // If showPrompt is already scheduled, it will show; otherwise deferredPrompt will trigger render
+      }
+      // If we're not showing the prompt, let the browser handle it normally
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -85,8 +114,16 @@ export function InstallPrompt() {
     localStorage.setItem('install-prompt-dismissed', Date.now().toString());
   };
 
-  // Don't show if already installed or prompt shouldn't be shown
-  if (isStandalone || !showPrompt) {
+  // Don't show if already installed
+  if (isStandalone) {
+    return null;
+  }
+
+  // If we have a deferred prompt, show it even if showPrompt is false (user might have dismissed before)
+  // This ensures we show the prompt when we prevented the default
+  const shouldShow = showPrompt || deferredPrompt !== null;
+
+  if (!shouldShow) {
     return null;
   }
 

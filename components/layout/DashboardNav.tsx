@@ -39,19 +39,10 @@ export default function DashboardNav({ navItems, userRole }: DashboardNavProps) 
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { logout, user } = useAuthStore();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Use router.push for better Next.js integration
-      router.push('/');
-      // Force a refresh to ensure all state is cleared
-      router.refresh();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, redirect to home
-      router.push('/');
-      router.refresh();
-    }
+  const handleLogout = () => {
+    // Clear state and redirect immediately (logout happens in background)
+    logout();
+    router.push('/');
   };
 
   // Check if user has access to a role
