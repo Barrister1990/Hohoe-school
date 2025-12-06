@@ -46,9 +46,9 @@ export default function LoginForm() {
 
       // Navigate immediately based on user role (user is guaranteed to exist after successful login)
       // Use replace instead of push to avoid adding login page to history
-      if (user.role === 'admin') {
+      if (user && user.role === 'admin') {
         router.replace('/admin/dashboard');
-      } else {
+      } else if (user) {
         router.replace('/teacher/dashboard');
       }
     } catch (err) {
