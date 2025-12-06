@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -65,7 +65,33 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route + '/')
   );
 
-  // Allow public routes
+  // If user is authenticated and on home page, redirect to appropriate dashboard
+  if (user && request.nextUrl.pathname === '/') {
+    try {
+      // Fetch user role from database for correct redirect
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('auth_user_id', user.id)
+        .single();
+      
+      if (userData?.role === 'admin') {
+        const redirectUrl = new URL('/admin/dashboard', request.url);
+        return NextResponse.redirect(redirectUrl);
+      } else {
+        // Default to teacher dashboard for class_teacher and subject_teacher
+        const redirectUrl = new URL('/teacher/dashboard', request.url);
+        return NextResponse.redirect(redirectUrl);
+      }
+    } catch (error) {
+      // If role fetch fails, default to teacher dashboard
+      // Client-side will handle correct redirect if needed
+      const redirectUrl = new URL('/teacher/dashboard', request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // Allow public routes for unauthenticated users
   if (isPublicRoute) {
     return response;
   }

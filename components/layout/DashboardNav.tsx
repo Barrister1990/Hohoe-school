@@ -40,9 +40,9 @@ export default function DashboardNav({ navItems, userRole }: DashboardNavProps) 
   const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
-    // Clear state and redirect immediately (logout happens in background)
+    // Clear state and redirect immediately using window.location for faster redirect
     logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   // Check if user has access to a role

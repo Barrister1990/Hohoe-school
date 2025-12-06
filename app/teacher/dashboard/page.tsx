@@ -83,9 +83,9 @@ export default function TeacherDashboard() {
   };
 
   const handleLogout = () => {
-    // Clear state and redirect immediately (logout happens in background)
+    // Clear state and redirect immediately using window.location for faster redirect
     logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   useEffect(() => {

@@ -44,12 +44,15 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Navigate immediately based on user role (user is guaranteed to exist after successful login)
-      // Use replace instead of push to avoid adding login page to history
+      // Navigate immediately using window.location for faster redirect (bypasses React router)
+      // This ensures immediate navigation even if React state hasn't fully updated
+      // The loading state will be cleared by the store, but navigation happens immediately
       if (user && user.role === 'admin') {
-        router.replace('/admin/dashboard');
+        window.location.href = '/admin/dashboard';
+        return; // Exit early to prevent any further execution
       } else if (user) {
-        router.replace('/teacher/dashboard');
+        window.location.href = '/teacher/dashboard';
+        return; // Exit early to prevent any further execution
       }
     } catch (err) {
       const errorMessage = formatError(err);

@@ -27,9 +27,9 @@ export default function DrawerNav({ navItems, userRole }: DrawerNavProps) {
 
   const handleLogout = () => {
     setIsOpen(false);
-    // Clear state and redirect immediately (logout happens in background)
+    // Clear state and redirect immediately using window.location for faster redirect
     logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   // Check if user has access to a role

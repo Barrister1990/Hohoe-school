@@ -18,9 +18,9 @@ export default function Header({ title }: HeaderProps) {
 
   const handleLogout = () => {
     setShowProfileMenu(false);
-    // Clear state and redirect immediately (logout happens in background)
+    // Clear state and redirect immediately using window.location for faster redirect
     logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   return (
