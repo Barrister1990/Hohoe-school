@@ -107,7 +107,7 @@ export default function LoginForm() {
       {displayError && (
         <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
           <div className="flex">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <svg
                 className="h-4 w-4 text-red-400"
                 viewBox="0 0 20 20"
