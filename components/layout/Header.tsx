@@ -17,7 +17,7 @@ export default function Header({ title }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = () => {
-    setShowProfileMenu(false);
+      setShowProfileMenu(false);
     // Clear state and redirect immediately using window.location for faster redirect
     logout();
     window.location.href = '/';

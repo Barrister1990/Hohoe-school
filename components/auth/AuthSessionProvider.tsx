@@ -47,9 +47,9 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         // Check current user from store state
         const storeState = useAuthStore.getState();
         if (!storeState.user) {
-          const user = await authService.getCurrentUser();
+        const user = await authService.getCurrentUser();
           if (user && mounted) {
-            setUser(user);
+          setUser(user);
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -59,10 +59,10 @@ export function AuthSessionProvider({ children }: { children: React.ReactNode })
         // Defer to avoid blocking UI
         setTimeout(async () => {
           if (mounted) {
-            const user = await authService.getCurrentUser();
+        const user = await authService.getCurrentUser();
             if (user && mounted) {
-              setUser(user);
-            }
+          setUser(user);
+        }
           }
         }, 100);
       }

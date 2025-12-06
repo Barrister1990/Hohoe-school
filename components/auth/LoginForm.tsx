@@ -1,5 +1,6 @@
 'use client';
 
+import { useAlert } from '@/components/shared/AlertProvider';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { formatError } from '@/lib/utils/error-formatter';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginForm() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
+  const { showSuccess } = useAlert();
   const [localError, setLocalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -46,11 +48,17 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Simple navigation - no delays, no complex logic
+      // Show success toast and navigate immediately
       if (user) {
+        showSuccess(`Welcome back, ${user.name}!`, 'Login successful');
+        
+        // Determine target URL
         const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
-        window.location.href = targetUrl;
-        // Navigation started - don't reset isNavigating (page will reload)
+        
+        // Navigate immediately - Supabase already set the session cookie
+        // Use router.replace for client-side navigation (faster than full page reload)
+        router.replace(targetUrl);
+        
         return;
       } else {
         setLocalError('Login failed. Please try again.');

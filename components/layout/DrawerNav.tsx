@@ -26,7 +26,7 @@ export default function DrawerNav({ navItems, userRole }: DrawerNavProps) {
   const { logout, user } = useAuthStore();
 
   const handleLogout = () => {
-    setIsOpen(false);
+      setIsOpen(false);
     // Clear state and redirect immediately using window.location for faster redirect
     logout();
     window.location.href = '/';

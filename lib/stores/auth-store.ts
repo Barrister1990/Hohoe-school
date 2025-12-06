@@ -59,13 +59,13 @@ export const useAuthStore = create<AuthStore>()((set) => ({
 
       logout: async () => {
         // Clear state immediately for instant UI feedback
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
         
         // Perform logout in background (don't await - let it happen async)
         // This allows immediate redirect while cleanup happens in background
