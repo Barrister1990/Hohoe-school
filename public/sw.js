@@ -1,8 +1,8 @@
 // Service Worker for Offline-First Support
-// Version: 1.0.0
+// Version: 1.1.0 - Fixed navigation interference
 
-const CACHE_NAME = 'hohoe-lms-v1';
-const RUNTIME_CACHE = 'hohoe-lms-runtime-v1';
+const CACHE_NAME = 'hohoe-lms-v1.1';
+const RUNTIME_CACHE = 'hohoe-lms-runtime-v1.1';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -54,6 +54,20 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http requests
   if (!url.protocol.startsWith('http')) {
     return;
+  }
+
+  // CRITICAL: Skip navigation requests (document requests) - let browser handle them
+  // This prevents service worker from interfering with page navigation
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    return; // Let the browser handle navigation naturally
+  }
+
+  // Skip auth-related routes - never cache these
+  if (url.pathname.startsWith('/auth') || 
+      url.pathname === '/' || 
+      url.pathname.startsWith('/admin/dashboard') || 
+      url.pathname.startsWith('/teacher/dashboard')) {
+    return; // Let these go directly to network, no caching
   }
 
   // For API calls, use network-first strategy

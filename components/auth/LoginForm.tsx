@@ -49,20 +49,20 @@ export default function LoginForm() {
       });
 
       if (user) {
-        // Show success toast first
-        showSuccess(`Welcome back, ${user.name}!`, 'Login successful');
-        
         // Determine target URL
         const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
         
-        // Wait for alert to render, then navigate
-        // Use setTimeout to ensure React has time to render the alert dialog
-        setTimeout(() => {
-          // Clear navigation state
-          setIsNavigating(false);
-          // Use window.location.href for full page reload - ensures alert shows and navigation works
-          window.location.href = targetUrl;
-        }, 600); // 600ms delay to ensure alert renders and is visible
+        // Clear navigation state immediately
+        setIsNavigating(false);
+        
+        // Show success toast (non-blocking, won't delay navigation)
+        showSuccess(`Welcome back, ${user.name}!`, 'Login successful');
+        
+        // Navigate immediately - window.location.href always works
+        // The service worker is configured to skip navigation requests
+        // If navigation still fails, it's likely a service worker cache issue
+        // User can hard refresh (Ctrl+Shift+R) to clear service worker cache
+        window.location.href = targetUrl;
         
         return;
       } else {
