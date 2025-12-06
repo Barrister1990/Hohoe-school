@@ -49,14 +49,20 @@ export default function LoginForm() {
       });
 
       if (user) {
+        // Show success toast first
         showSuccess(`Welcome back, ${user.name}!`, 'Login successful');
         
         // Determine target URL
         const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
         
-        // Navigate immediately - Supabase already set the session cookie
-        // Use router.replace for client-side navigation (faster than full page reload)
-        router.replace(targetUrl);
+        // Wait for alert to render, then navigate
+        // Use setTimeout to ensure React has time to render the alert dialog
+        setTimeout(() => {
+          // Clear navigation state
+          setIsNavigating(false);
+          // Use window.location.href for full page reload - ensures alert shows and navigation works
+          window.location.href = targetUrl;
+        }, 600); // 600ms delay to ensure alert renders and is visible
         
         return;
       } else {
