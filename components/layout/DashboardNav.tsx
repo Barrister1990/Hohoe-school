@@ -42,12 +42,15 @@ export default function DashboardNav({ navItems, userRole }: DashboardNavProps) 
   const handleLogout = async () => {
     try {
       await logout();
-      // Force a hard redirect to ensure all state is cleared
-      window.location.href = '/';
+      // Use router.push for better Next.js integration
+      router.push('/');
+      // Force a refresh to ensure all state is cleared
+      router.refresh();
     } catch (error) {
       console.error('Logout error:', error);
       // Even if logout fails, redirect to home
-      window.location.href = '/';
+      router.push('/');
+      router.refresh();
     }
   };
 

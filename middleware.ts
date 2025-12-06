@@ -55,8 +55,8 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired - this ensures cookies are always up to date
-  await supabase.auth.getUser();
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/login', '/verify-email', '/change-password', '/forgot-password', '/reset-password', '/auth'];
@@ -70,9 +70,18 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // For protected routes, we'll handle auth in the component level
-  // since we're using client-side auth with Zustand
-  // The middleware just ensures cookies are refreshed
+  // Protected routes - check authentication
+  const protectedRoutes = ['/admin', '/teacher'];
+  const isProtectedRoute = protectedRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  // If accessing protected route without authentication, redirect to home
+  if (isProtectedRoute && !user) {
+    const redirectUrl = new URL('/', request.url);
+    return NextResponse.redirect(redirectUrl);
+  }
+
   return response;
 }
 

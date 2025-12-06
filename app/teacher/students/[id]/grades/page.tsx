@@ -196,7 +196,7 @@ export default function StudentGradesPage() {
             setEvaluation({
               conduct: evaluationData.conductRating || undefined,
               interest: evaluationData.interestLevel || undefined,
-              remarks: evaluationData.remarks || undefined,
+              remarks: evaluationData.classTeacherRemarks || undefined,
             });
           }
         }

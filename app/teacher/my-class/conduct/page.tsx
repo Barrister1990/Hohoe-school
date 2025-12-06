@@ -14,81 +14,72 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 // Helper functions to map between form values and database values
+// Since we're using the exact values from the picklist, no mapping needed
 const mapConductToDb = (value: string): ConductRating | undefined => {
-  const map: Record<string, ConductRating> = {
-    'excellent': 'Excellent',
-    'very_good': 'Very Good',
-    'good': 'Good',
-    'satisfactory': 'Satisfactory',
-    'needs_improvement': 'Needs Improvement',
-  };
-  return map[value];
+  const validValues: ConductRating[] = ['Respectful', 'Obedience', 'Hardworking', 'Dutiful', 'Humble', 'Calm', 'Approachable', 'Unruly'];
+  return validValues.includes(value as ConductRating) ? (value as ConductRating) : undefined;
 };
 
 const mapConductFromDb = (value: ConductRating | undefined): string | undefined => {
-  const map: Record<ConductRating, string> = {
-    'Excellent': 'excellent',
-    'Very Good': 'very_good',
-    'Good': 'good',
-    'Satisfactory': 'satisfactory',
-    'Needs Improvement': 'needs_improvement',
-  };
-  return value ? map[value] : undefined;
+  return value;
 };
 
 const mapInterestToDb = (value: string): InterestLevel | undefined => {
-  const map: Record<string, InterestLevel> = {
-    'very_high': 'Very High',
-    'high': 'High',
-    'moderate': 'Moderate',
-    'low': 'Low',
-    'very_low': 'Very Low',
-  };
-  return map[value];
+  const validValues: InterestLevel[] = ['Artwork', 'Reading', 'Football', 'Athletics', 'Music', 'Computing Skills'];
+  return validValues.includes(value as InterestLevel) ? (value as InterestLevel) : undefined;
 };
 
 const mapInterestFromDb = (value: InterestLevel | undefined): string | undefined => {
-  const map: Record<InterestLevel, string> = {
-    'Very High': 'very_high',
-    'High': 'high',
-    'Moderate': 'moderate',
-    'Low': 'low',
-    'Very Low': 'very_low',
-  };
-  return value ? map[value] : undefined;
+  return value;
 };
 
 const conductSchema = z.object({
   academicYear: z.string().min(1, 'Academic year is required'),
   term: z.enum(['1', '2', '3'], { message: 'Term is required' }),
-  conduct: z.enum(['excellent', 'very_good', 'good', 'satisfactory', 'needs_improvement'], {
-    message: 'Conduct rating is required',
+  conduct: z.enum(['Respectful', 'Obedience', 'Hardworking', 'Dutiful', 'Humble', 'Calm', 'Approachable', 'Unruly'], {
+    message: 'Conduct is required',
   }),
   conductRemarks: z.string().optional(),
-  interest: z.enum(['very_high', 'high', 'moderate', 'low', 'very_low'], {
-    message: 'Interest level is required',
+  interest: z.enum(['Artwork', 'Reading', 'Football', 'Athletics', 'Music', 'Computing Skills'], {
+    message: 'Interest/Talent is required',
   }),
   interestRemarks: z.string().optional(),
-  remarks: z.string().optional(),
+  classTeacherRemarks: z.enum(['Dutiful', 'Dutiful. Well done. Keep it up', 'Keep it up', 'Has improved', 'Could do better', 'More room for improvement', 'Very positive in the class', 'Very courteous', 'Conduct well in class']).optional(),
   rewards: z.array(z.string()),
 });
 
 type ConductFormData = z.infer<typeof conductSchema>;
 
 const conductOptions: { value: string; label: string; color: string }[] = [
-  { value: 'excellent', label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-300' },
-  { value: 'very_good', label: 'Very Good', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  { value: 'good', label: 'Good', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
-  { value: 'satisfactory', label: 'Satisfactory', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-  { value: 'needs_improvement', label: 'Needs Improvement', color: 'bg-red-100 text-red-800 border-red-300' },
+  { value: 'Respectful', label: 'Respectful', color: 'bg-green-100 text-green-800 border-green-300' },
+  { value: 'Obedience', label: 'Obedience', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { value: 'Hardworking', label: 'Hardworking', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+  { value: 'Dutiful', label: 'Dutiful', color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  { value: 'Humble', label: 'Humble', color: 'bg-teal-100 text-teal-800 border-teal-300' },
+  { value: 'Calm', label: 'Calm', color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+  { value: 'Approachable', label: 'Approachable', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  { value: 'Unruly', label: 'Unruly', color: 'bg-red-100 text-red-800 border-red-300' },
 ];
 
 const interestOptions: { value: string; label: string; color: string }[] = [
-  { value: 'very_high', label: 'Very High', color: 'bg-green-100 text-green-800 border-green-300' },
-  { value: 'high', label: 'High', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  { value: 'moderate', label: 'Moderate', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-  { value: 'low', label: 'Low', color: 'bg-orange-100 text-orange-800 border-orange-300' },
-  { value: 'very_low', label: 'Very Low', color: 'bg-red-100 text-red-800 border-red-300' },
+  { value: 'Artwork', label: 'Artwork', color: 'bg-pink-100 text-pink-800 border-pink-300' },
+  { value: 'Reading', label: 'Reading', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { value: 'Football', label: 'Football', color: 'bg-green-100 text-green-800 border-green-300' },
+  { value: 'Athletics', label: 'Athletics', color: 'bg-orange-100 text-orange-800 border-orange-300' },
+  { value: 'Music', label: 'Music', color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  { value: 'Computing Skills', label: 'Computing Skills', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+];
+
+const classTeacherRemarksOptions: { value: string; label: string }[] = [
+  { value: 'Dutiful', label: 'Dutiful' },
+  { value: 'Dutiful. Well done. Keep it up', label: 'Dutiful. Well done. Keep it up' },
+  { value: 'Keep it up', label: 'Keep it up' },
+  { value: 'Has improved', label: 'Has improved' },
+  { value: 'Could do better', label: 'Could do better' },
+  { value: 'More room for improvement', label: 'More room for improvement' },
+  { value: 'Very positive in the class', label: 'Very positive in the class' },
+  { value: 'Very courteous', label: 'Very courteous' },
+  { value: 'Conduct well in class', label: 'Conduct well in class' },
 ];
 
 const rewardTypes: { value: string; label: string; icon: string }[] = [
@@ -211,17 +202,17 @@ export default function ConductPage() {
     setSelectedStudent(studentId);
     const evaluation = evaluations[studentId];
     if (evaluation) {
-      const mappedConduct = mapConductFromDb(evaluation.conductRating) as 'excellent' | 'very_good' | 'good' | 'satisfactory' | 'needs_improvement' | undefined;
-      const mappedInterest = mapInterestFromDb(evaluation.interestLevel) as 'very_high' | 'high' | 'moderate' | 'low' | 'very_low' | undefined;
+      const mappedConduct = mapConductFromDb(evaluation.conductRating);
+      const mappedInterest = mapInterestFromDb(evaluation.interestLevel);
       
       reset({
         academicYear: evaluation.academicYear,
         term: evaluation.term.toString() as '1' | '2' | '3',
-        conduct: mappedConduct,
+        conduct: mappedConduct as any,
         conductRemarks: evaluation.conductRemarks || '',
-        interest: mappedInterest,
+        interest: mappedInterest as any,
         interestRemarks: evaluation.interestRemarks || '',
-        remarks: '', // Not stored in evaluation table
+        classTeacherRemarks: (evaluation as any).classTeacherRemarks || undefined,
         rewards: rewards[studentId]?.map((r) => r.id) || [],
       });
     } else {
@@ -230,6 +221,7 @@ export default function ConductPage() {
         term: selectedTerm as '1' | '2' | '3',
         conduct: undefined,
         interest: undefined,
+        classTeacherRemarks: undefined,
         rewards: [],
       });
     }
@@ -325,6 +317,7 @@ export default function ConductPage() {
         conductRemarks: data.conductRemarks || undefined,
         interestLevel: data.interest ? mapInterestToDb(data.interest) : undefined,
         interestRemarks: data.interestRemarks || undefined,
+        classTeacherRemarks: data.classTeacherRemarks || undefined,
       };
 
       // Use offline service - it handles online/offline automatically
@@ -513,7 +506,7 @@ export default function ConductPage() {
                     <p className="mt-1 text-xs text-red-600">{errors.conduct.message}</p>
                   )}
                   <p className="mt-1 text-xs text-gray-500">
-                    Rate the student's behavior and adherence to school rules
+                    Select the student's conduct behavior
                   </p>
                 </div>
 
@@ -529,10 +522,10 @@ export default function ConductPage() {
                   />
                 </div>
 
-                {/* Interest Level */}
+                {/* Interest/Talent */}
                 <div>
                   <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                    Interest Level <span className="text-red-500">*</span>
+                    Talent/Interest <span className="text-red-500">*</span>
                   </label>
                   <Controller
                     name="interest"
@@ -542,7 +535,7 @@ export default function ConductPage() {
                         {...field}
                         className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base bg-white"
                       >
-                        <option value="">Select interest level</option>
+                        <option value="">Select talent/interest</option>
                         {interestOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
@@ -555,7 +548,7 @@ export default function ConductPage() {
                     <p className="mt-1 text-xs text-red-600">{errors.interest.message}</p>
                   )}
                   <p className="mt-1 text-xs text-gray-500">
-                    Assess the student's level of interest and engagement in learning
+                    Select the student's talent or area of interest
                   </p>
                 </div>
 
@@ -569,6 +562,36 @@ export default function ConductPage() {
                     className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                     placeholder="Add remarks about student interest..."
                   />
+                </div>
+
+                {/* Class Teacher's Remarks */}
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Class Teacher's Remarks
+                  </label>
+                  <Controller
+                    name="classTeacherRemarks"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        {...field}
+                        className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base bg-white"
+                      >
+                        <option value="">Select remarks</option>
+                        {classTeacherRemarksOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  {errors.classTeacherRemarks && (
+                    <p className="mt-1 text-xs text-red-600">{errors.classTeacherRemarks.message}</p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Select a remark for the student's report card
+                  </p>
                 </div>
 
                 {/* Rewards */}

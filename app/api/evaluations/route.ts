@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
       conductRemarks: body.conductRemarks,
       interestLevel: body.interestLevel,
       interestRemarks: body.interestRemarks,
+      classTeacherRemarks: body.classTeacherRemarks,
     };
 
     const evaluation = await evaluationService.upsertEvaluation(supabase, evaluationData);

@@ -24,6 +24,7 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       // Sign in with Supabase Auth
+      // Let it complete naturally - timeout is handled at store level
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
@@ -50,6 +51,7 @@ class AuthService {
 
       // Get user profile from public.users table
       // Use auth_user_id for more reliable lookup
+      // Let it complete naturally - timeout is handled at store level
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -76,13 +78,25 @@ class AuthService {
       }
 
       if (!userData.is_active) {
-        await supabase.auth.signOut();
+        // Don't wait for signOut if it hangs - use timeout
+        Promise.race([
+          supabase.auth.signOut(),
+          new Promise<void>((resolve) => setTimeout(() => resolve(), 2000)),
+        ]).catch(() => {
+          // Ignore signOut errors
+        });
         throw new Error('Account is inactive. Please contact administrator.');
       }
 
       // Check if email is verified
       if (!userData.email_verified && authData.user.email_confirmed_at === null) {
-        await supabase.auth.signOut();
+        // Don't wait for signOut if it hangs - use timeout
+        Promise.race([
+          supabase.auth.signOut(),
+          new Promise<void>((resolve) => setTimeout(() => resolve(), 2000)),
+        ]).catch(() => {
+          // Ignore signOut errors
+        });
         throw new Error('EMAIL_NOT_VERIFIED');
       }
 
@@ -120,9 +134,19 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       // Sign out from Supabase Auth (this clears the session and cookies)
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error);
+      // Use Promise.race with timeout to prevent hanging
+      const signOutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise<{ error: null }>((resolve) => {
+        setTimeout(() => {
+          console.warn('Logout timeout - proceeding anyway');
+          resolve({ error: null });
+        }, 2000); // 2 second timeout
+      });
+      
+      const result = await Promise.race([signOutPromise, timeoutPromise]);
+      
+      if (result?.error) {
+        console.error('Logout error:', result.error);
         // Don't throw error - still clear local state even if signOut fails
         // This ensures user can still logout even if there's a network issue
       }

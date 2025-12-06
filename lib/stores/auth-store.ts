@@ -1,8 +1,8 @@
 'use client';
 
-import { create } from 'zustand';
-import { User } from '@/types';
 import { authService, LoginCredentials, PasswordChangeRequest } from '@/lib/services/auth-service';
+import { User } from '@/types';
+import { create } from 'zustand';
 
 interface AuthStore {
   user: User | null;
@@ -32,7 +32,17 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authService.login(credentials);
+          // Add overall timeout to prevent hanging (60 seconds - only fires if truly stuck)
+          // This allows normal slow network operations to complete
+          const loginPromise = authService.login(credentials);
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+              reject(new Error('Login request timed out. Please check your internet connection and try again.'));
+            }, 60000); // 60 second overall timeout - only fires if truly hung
+          });
+
+          const response = await Promise.race([loginPromise, timeoutPromise]);
+          
           set({
             user: response.user,
             token: response.session?.access_token || null,
@@ -56,7 +66,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       logout: async () => {
         set({ isLoading: true });
         try {
-          await authService.logout();
+          // Use Promise.race with timeout to prevent hanging
+          const logoutPromise = authService.logout();
+          const timeoutPromise = new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), 3000); // 3 second timeout
+          });
+          
+          await Promise.race([logoutPromise, timeoutPromise]);
+          
+          // Always clear state, even if logout timed out or failed
           set({
             user: null,
             token: null,
@@ -65,7 +83,14 @@ export const useAuthStore = create<AuthStore>()((set) => ({
             error: null,
           });
         } catch (error) {
-          set({ isLoading: false });
+          // Even if logout fails, clear the state
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
         }
       },
 

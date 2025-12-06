@@ -5,8 +5,9 @@
  * Note: Attendance is entered manually as a summary, not daily marking
  */
 
-export type ConductRating = 'excellent' | 'very_good' | 'good' | 'satisfactory' | 'needs_improvement';
-export type InterestLevel = 'very_high' | 'high' | 'moderate' | 'low' | 'very_low';
+export type ConductRating = 'Respectful' | 'Obedience' | 'Hardworking' | 'Dutiful' | 'Humble' | 'Calm' | 'Approachable' | 'Unruly';
+export type InterestLevel = 'Artwork' | 'Reading' | 'Football' | 'Athletics' | 'Music' | 'Computing Skills';
+export type ClassTeacherRemarks = 'Dutiful' | 'Dutiful. Well done. Keep it up' | 'Keep it up' | 'Has improved' | 'Could do better' | 'More room for improvement' | 'Very positive in the class' | 'Very courteous' | 'Conduct well in class';
 
 export interface ClassTeacherReward {
   id: string;
@@ -48,10 +49,13 @@ export interface ClassTeacherEvaluation {
   interest: InterestLevel;
   interestRemarks?: string;
   
+  // Class teacher remarks
+  classTeacherRemarks?: ClassTeacherRemarks;
+  
   // Rewards earned in this term
   rewards: string[]; // Reward IDs
   
-  // General remarks
+  // General remarks (deprecated - use classTeacherRemarks instead)
   remarks?: string;
   
   synced: boolean;

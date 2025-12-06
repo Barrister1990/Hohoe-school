@@ -6,8 +6,9 @@
 import { formatError } from '@/lib/utils/error-formatter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type ConductRating = 'Excellent' | 'Very Good' | 'Good' | 'Satisfactory' | 'Needs Improvement';
-export type InterestLevel = 'Very High' | 'High' | 'Moderate' | 'Low' | 'Very Low';
+export type ConductRating = 'Respectful' | 'Obedience' | 'Hardworking' | 'Dutiful' | 'Humble' | 'Calm' | 'Approachable' | 'Unruly';
+export type InterestLevel = 'Artwork' | 'Reading' | 'Football' | 'Athletics' | 'Music' | 'Computing Skills';
+export type ClassTeacherRemarks = 'Dutiful' | 'Dutiful. Well done. Keep it up' | 'Keep it up' | 'Has improved' | 'Could do better' | 'More room for improvement' | 'Very positive in the class' | 'Very courteous' | 'Conduct well in class';
 
 export interface ClassTeacherEvaluation {
   id: string;
@@ -19,6 +20,7 @@ export interface ClassTeacherEvaluation {
   conductRemarks?: string;
   interestLevel?: InterestLevel;
   interestRemarks?: string;
+  classTeacherRemarks?: ClassTeacherRemarks;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +44,7 @@ export interface CreateEvaluationData {
   conductRemarks?: string;
   interestLevel?: InterestLevel;
   interestRemarks?: string;
+  classTeacherRemarks?: ClassTeacherRemarks;
 }
 
 export interface CreateRewardData {
@@ -67,6 +70,7 @@ class EvaluationService {
       conductRemarks: row.conduct_remarks || undefined,
       interestLevel: row.interest_level as InterestLevel | undefined,
       interestRemarks: row.interest_remarks || undefined,
+      classTeacherRemarks: row.class_teacher_remarks as ClassTeacherRemarks | undefined,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
@@ -198,6 +202,7 @@ class EvaluationService {
             conduct_remarks: evaluationData.conductRemarks || null,
             interest_level: evaluationData.interestLevel || null,
             interest_remarks: evaluationData.interestRemarks || null,
+            class_teacher_remarks: evaluationData.classTeacherRemarks || null,
           })
           .eq('id', existing.id)
           .select()
@@ -218,6 +223,7 @@ class EvaluationService {
             conduct_remarks: evaluationData.conductRemarks || null,
             interest_level: evaluationData.interestLevel || null,
             interest_remarks: evaluationData.interestRemarks || null,
+            class_teacher_remarks: evaluationData.classTeacherRemarks || null,
           })
           .select()
           .single();
