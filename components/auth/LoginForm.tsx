@@ -22,6 +22,7 @@ export default function LoginForm() {
   const { login, isLoading, error, clearError } = useAuthStore();
   const [localError, setLocalError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const {
     register,
@@ -44,16 +45,30 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Navigate immediately using window.location for faster redirect (bypasses React router)
-      // This ensures immediate navigation even if React state hasn't fully updated
-      // The loading state will be cleared by the store, but navigation happens immediately
-      if (user && user.role === 'admin') {
-        window.location.href = '/admin/dashboard';
-        return; // Exit early to prevent any further execution
-      } else if (user) {
-        window.location.href = '/teacher/dashboard';
-        return; // Exit early to prevent any further execution
+      // Ensure user exists before navigation
+      if (!user) {
+        setLocalError('Login successful but user data not available. Please try again.');
+        return;
       }
+
+      // Mark as navigating to prevent further interactions
+      setIsNavigating(true);
+
+      // Determine target URL
+      const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
+
+      // Small delay to ensure session cookie is set before navigation
+      // This prevents middleware from redirecting back due to missing session
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Navigate immediately using window.location.replace for faster redirect
+      // Use replace instead of href to avoid adding to history
+      // This ensures immediate navigation even if React state hasn't fully updated
+      // window.location.replace will cause a full page reload, so no need for fallback
+      window.location.replace(targetUrl);
+      
+      // Navigation started - exit early
+      return;
     } catch (err) {
       const errorMessage = formatError(err);
       
@@ -200,10 +215,10 @@ export default function LoginForm() {
         <div>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isNavigating}
             className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {isLoading ? (
+            {(isLoading || isNavigating) ? (
               <>
                 <svg
                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"

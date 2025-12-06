@@ -51,16 +51,39 @@ class AuthService {
 
       // Get user profile from public.users table
       // Use auth_user_id for more reliable lookup
-      // Let it complete naturally - timeout is handled at store level
-      const { data: userData, error: userError } = await supabase
+      // Add timeout to prevent hanging on slow database queries
+      const userProfileQuery = supabase
         .from('users')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single();
+      
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        setTimeout(() => {
+          resolve({ 
+            data: null, 
+            error: { message: 'User profile fetch timed out. Please try again.' } 
+          });
+        }, 10000); // 10 second timeout for user profile fetch
+      });
+
+      const result = await Promise.race([
+        userProfileQuery,
+        timeoutPromise,
+      ]);
+
+      const { data: userData, error: userError } = result;
 
       if (userError || !userData) {
+        // Check for timeout error first
+        if (userError?.message?.includes('timed out')) {
+          throw new Error('Request timed out. Please check your internet connection and try again.');
+        }
+        
         // Provide user-friendly error message
-        if (userError?.code === 'PGRST116') {
+        // Check if userError has a code property (PostgrestError)
+        const errorCode = (userError as any)?.code;
+        if (errorCode === 'PGRST116') {
           // No rows returned - user exists in auth but not in public.users
           throw new Error(
             'Your account is not fully set up. Please contact your administrator to complete your account setup.'
@@ -68,7 +91,7 @@ class AuthService {
         }
         
         // Check for RLS/permission errors
-        if (userError?.code === '42501' || userError?.message?.includes('permission') || userError?.message?.includes('policy')) {
+        if (errorCode === '42501' || userError?.message?.includes('permission') || userError?.message?.includes('policy')) {
           throw new Error(
             'Unable to access your account information. Please contact your administrator.'
           );
