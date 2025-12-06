@@ -32,17 +32,10 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
-          // Add overall timeout to prevent hanging (60 seconds - only fires if truly stuck)
-          // This allows normal slow network operations to complete
-          const loginPromise = authService.login(credentials);
-          const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => {
-              reject(new Error('Login request timed out. Please check your internet connection and try again.'));
-            }, 60000); // 60 second overall timeout - only fires if truly hung
-          });
-
-          const response = await Promise.race([loginPromise, timeoutPromise]);
+          // Simple, direct login - no complex timeouts or race conditions
+          const response = await authService.login(credentials);
           
+          // Set state immediately
           set({
             user: response.user,
             token: response.session?.access_token || null,
@@ -50,7 +43,8 @@ export const useAuthStore = create<AuthStore>()((set) => ({
             isLoading: false,
             error: null,
           });
-          return response.user; // Return user for immediate use
+          
+          return response.user;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({
@@ -59,7 +53,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
             isAuthenticated: false,
             user: null,
           });
-          throw error; // Re-throw for component handling
+          throw error;
         }
       },
 

@@ -49,77 +49,35 @@ class AuthService {
         throw new Error('Authentication failed');
       }
 
-      // Get user profile from public.users table
-      // Use auth_user_id for more reliable lookup
-      // Add timeout to prevent hanging on slow database queries
-      const userProfileQuery = supabase
+      // Get user profile from public.users table - simple and direct
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single();
-      
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
-        setTimeout(() => {
-          resolve({ 
-            data: null, 
-            error: { message: 'User profile fetch timed out. Please try again.' } 
-          });
-        }, 10000); // 10 second timeout for user profile fetch
-      });
-
-      const result = await Promise.race([
-        userProfileQuery,
-        timeoutPromise,
-      ]);
-
-      const { data: userData, error: userError } = result;
 
       if (userError || !userData) {
-        // Check for timeout error first
-        if (userError?.message?.includes('timed out')) {
-          throw new Error('Request timed out. Please check your internet connection and try again.');
-        }
-        
-        // Provide user-friendly error message
-        // Check if userError has a code property (PostgrestError)
+        // Simple error handling
         const errorCode = (userError as any)?.code;
         if (errorCode === 'PGRST116') {
-          // No rows returned - user exists in auth but not in public.users
-          throw new Error(
-            'Your account is not fully set up. Please contact your administrator to complete your account setup.'
-          );
+          throw new Error('Your account is not fully set up. Please contact your administrator.');
         }
-        
-        // Check for RLS/permission errors
-        if (errorCode === '42501' || userError?.message?.includes('permission') || userError?.message?.includes('policy')) {
-          throw new Error(
-            'Unable to access your account information. Please contact your administrator.'
-          );
+        if (errorCode === '42501' || userError?.message?.includes('permission')) {
+          throw new Error('Unable to access your account. Please contact your administrator.');
         }
-        
-        throw new Error('Unable to load your account. Please contact your administrator if this problem persists.');
+        throw new Error('Unable to load your account. Please try again.');
       }
 
       if (!userData.is_active) {
-        // Don't wait for signOut if it hangs - use timeout
-        Promise.race([
-          supabase.auth.signOut(),
-          new Promise<void>((resolve) => setTimeout(() => resolve(), 2000)),
-        ]).catch(() => {
-          // Ignore signOut errors
-        });
+        // Sign out in background (non-blocking)
+        supabase.auth.signOut().catch(() => {});
         throw new Error('Account is inactive. Please contact administrator.');
       }
 
       // Check if email is verified
       if (!userData.email_verified && authData.user.email_confirmed_at === null) {
-        // Don't wait for signOut if it hangs - use timeout
-        Promise.race([
-          supabase.auth.signOut(),
-          new Promise<void>((resolve) => setTimeout(() => resolve(), 2000)),
-        ]).catch(() => {
-          // Ignore signOut errors
-        });
+        // Sign out in background (non-blocking)
+        supabase.auth.signOut().catch(() => {});
         throw new Error('EMAIL_NOT_VERIFIED');
       }
 
@@ -156,25 +114,11 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      // Sign out from Supabase Auth (this clears the session and cookies)
-      // Use a shorter timeout since we're doing this in background
-      const signOutPromise = supabase.auth.signOut();
-      const timeoutPromise = new Promise<{ error: null }>((resolve) => {
-        setTimeout(() => {
-          console.warn('Logout timeout - proceeding anyway');
-          resolve({ error: null });
-        }, 1500); // 1.5 second timeout (reduced from 2s)
-      });
-      
-      const result = await Promise.race([signOutPromise, timeoutPromise]);
-      
-      if (result?.error) {
-        console.error('Logout error:', result.error);
-        // Don't throw error - state is already cleared
-      }
+      // Simple sign out - no timeouts, no complexity
+      await supabase.auth.signOut();
     } catch (error) {
-      console.error('Logout error:', error);
-      // Don't throw - state is already cleared, this is background cleanup
+      // Ignore errors - logout should always succeed from user perspective
+      console.error('Logout error (non-blocking):', error);
     }
   }
 

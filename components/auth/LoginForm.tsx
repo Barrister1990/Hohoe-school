@@ -38,6 +38,7 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setLocalError(null);
     clearError();
+    setIsNavigating(true);
 
     try {
       const user = await login({
@@ -45,31 +46,20 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Ensure user exists before navigation
-      if (!user) {
-        setLocalError('Login successful but user data not available. Please try again.');
+      // Simple navigation - no delays, no complex logic
+      if (user) {
+        const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
+        window.location.href = targetUrl;
+        // Navigation started - don't reset isNavigating (page will reload)
         return;
+      } else {
+        setLocalError('Login failed. Please try again.');
+        setIsNavigating(false);
       }
-
-      // Mark as navigating to prevent further interactions
-      setIsNavigating(true);
-
-      // Determine target URL
-      const targetUrl = user.role === 'admin' ? '/admin/dashboard' : '/teacher/dashboard';
-
-      // Small delay to ensure session cookie is set before navigation
-      // This prevents middleware from redirecting back due to missing session
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      // Navigate immediately using window.location.replace for faster redirect
-      // Use replace instead of href to avoid adding to history
-      // This ensures immediate navigation even if React state hasn't fully updated
-      // window.location.replace will cause a full page reload, so no need for fallback
-      window.location.replace(targetUrl);
-      
-      // Navigation started - exit early
-      return;
     } catch (err) {
+      // Always reset navigation state on error
+      setIsNavigating(false);
+      
       const errorMessage = formatError(err);
       
       // Handle specific error cases (check original error, not formatted)
