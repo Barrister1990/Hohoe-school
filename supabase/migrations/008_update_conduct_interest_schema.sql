@@ -1,6 +1,5 @@
 -- ============================================
--- Update class_teacher_evaluations table
--- Change conduct_rating and interest_level constraints
+-
 -- Add class_teacher_remarks field
 -- ============================================
 
