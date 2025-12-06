@@ -48,7 +48,6 @@ export default function LoginForm() {
         password: data.password,
       });
 
-      // Show success toast and navigate immediately
       if (user) {
         showSuccess(`Welcome back, ${user.name}!`, 'Login successful');
         
