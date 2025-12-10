@@ -44,6 +44,17 @@ export default function SettingsPage() {
     terms: ['Term 1', 'Term 2', 'Term 3'],
   });
 
+  // Term Settings State
+  const [termSettings, setTermSettings] = useState<Array<{
+    term: number;
+    closingDate: string;
+    reopeningDate: string;
+  }>>([
+    { term: 1, closingDate: '', reopeningDate: '' },
+    { term: 2, closingDate: '', reopeningDate: '' },
+    { term: 3, closingDate: '', reopeningDate: '' },
+  ]);
+
   // Assessment Structure State
   const [assessmentStructure, setAssessmentStructure] = useState({
     project: 40,
@@ -104,11 +115,31 @@ export default function SettingsPage() {
         if (academicRes.ok) {
           const academicData = await academicRes.json();
           if (academicData) {
+            const currentYear = academicData.currentAcademicYear || getCurrentAcademicYear();
             setAcademicSettings({
-              currentAcademicYear: academicData.currentAcademicYear || getCurrentAcademicYear(),
+              currentAcademicYear: currentYear,
               currentTerm: String(academicData.currentTerm || 1),
               terms: ['Term 1', 'Term 2', 'Term 3'],
             });
+
+            // Load term settings for current academic year
+            const termSettingsRes = await fetch(`/api/settings/term?academicYear=${encodeURIComponent(currentYear)}`, { credentials: 'include' });
+            if (termSettingsRes.ok) {
+              const termSettingsData = await termSettingsRes.json();
+              if (Array.isArray(termSettingsData) && termSettingsData.length > 0) {
+                const updatedTermSettings = termSettings.map((ts) => {
+                  const found = termSettingsData.find((t: any) => t.term === ts.term);
+                  return found
+                    ? {
+                        term: ts.term,
+                        closingDate: found.closingDate ? new Date(found.closingDate).toISOString().split('T')[0] : '',
+                        reopeningDate: found.reopeningDate ? new Date(found.reopeningDate).toISOString().split('T')[0] : '',
+                      }
+                    : ts;
+                });
+                setTermSettings(updatedTermSettings);
+              }
+            }
           }
         }
 
@@ -255,6 +286,39 @@ export default function SettingsPage() {
     } catch (error: any) {
       console.error('Failed to save settings:', error);
       showError(error.message || 'Failed to save settings. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveTermSettings = async () => {
+    setSaving(true);
+    try {
+      const promises = termSettings.map((ts) =>
+        fetch('/api/settings/term', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            academicYear: academicSettings.currentAcademicYear,
+            term: ts.term,
+            closingDate: ts.closingDate || null,
+            reopeningDate: ts.reopeningDate || null,
+          }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const errors = results.filter((res) => !res.ok);
+
+      if (errors.length > 0) {
+        throw new Error('Failed to save some term settings');
+      }
+
+      showSuccess('Term dates saved successfully!');
+    } catch (error: any) {
+      console.error('Failed to save term settings:', error);
+      showError(error.message || 'Failed to save term dates. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -451,20 +515,55 @@ export default function SettingsPage() {
 
               <div className="border-t border-gray-200 pt-4 md:pt-6">
                 <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-3 md:mb-4">
-                  Academic Terms
+                  Term Dates
                 </h3>
-                <div className="space-y-2">
-                  {academicSettings.terms.map((term, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700 w-20">{term}</span>
-                      <span className="text-xs text-gray-500">
-                        {index === 0 && 'September - December'}
-                        {index === 1 && 'January - April'}
-                        {index === 2 && 'May - August'}
-                      </span>
+                <div className="space-y-4">
+                  {termSettings.map((termSetting, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                      <div className="font-medium text-sm md:text-base text-gray-700">
+                        Term {termSetting.term}
+                      </div>
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                          Closing Date
+                        </label>
+                        <input
+                          type="date"
+                          value={termSetting.closingDate}
+                          onChange={(e) => {
+                            const updated = [...termSettings];
+                            updated[index].closingDate = e.target.value;
+                            setTermSettings(updated);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                          Reopening Date
+                        </label>
+                        <input
+                          type="date"
+                          value={termSetting.reopeningDate}
+                          onChange={(e) => {
+                            const updated = [...termSettings];
+                            updated[index].reopeningDate = e.target.value;
+                            setTermSettings(updated);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
+                <button
+                  onClick={() => handleSaveTermSettings()}
+                  disabled={saving}
+                  className="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? 'Saving...' : 'Save Term Dates'}
+                </button>
               </div>
             </div>
           )}

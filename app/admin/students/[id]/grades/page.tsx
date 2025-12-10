@@ -41,6 +41,8 @@ export default function StudentGradesPage() {
   const [classPosition, setClassPosition] = useState<number | undefined>(undefined);
   const [rollNumber, setRollNumber] = useState<number | undefined>(undefined);
   const [totalStudents, setTotalStudents] = useState<number | undefined>(undefined);
+  const [closingDate, setClosingDate] = useState<string | undefined>(undefined);
+  const [reopeningDate, setReopeningDate] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -247,6 +249,26 @@ export default function StudentGradesPage() {
             });
           }
         }
+
+        // Load term settings for closing and reopening dates
+        const termSettingsRes = await fetch(
+          `/api/settings/term?academicYear=${encodeURIComponent(selectedAcademicYear)}`,
+          { credentials: 'include' }
+        );
+
+        if (termSettingsRes.ok) {
+          const termSettings = await termSettingsRes.json();
+          if (Array.isArray(termSettings)) {
+            const currentTermSettings = termSettings.find((ts: any) => ts.term === parseInt(selectedTerm));
+            if (currentTermSettings) {
+              setClosingDate(currentTermSettings.closingDate);
+              // Get next term's reopening date (or current term's reopening date if next term not available)
+              const nextTerm = parseInt(selectedTerm) === 3 ? 1 : parseInt(selectedTerm) + 1;
+              const nextTermSettings = termSettings.find((ts: any) => ts.term === nextTerm);
+              setReopeningDate(nextTermSettings?.reopeningDate || currentTermSettings.reopeningDate);
+            }
+          }
+        }
       } catch (error) {
         console.error('Failed to load data:', error);
       } finally {
@@ -427,6 +449,8 @@ export default function StudentGradesPage() {
             classPosition={classPosition}
             rollNumber={rollNumber}
             totalStudents={totalStudents}
+            closingDate={closingDate}
+            reopeningDate={reopeningDate}
           />
         </div>
       )}

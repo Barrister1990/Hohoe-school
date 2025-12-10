@@ -38,6 +38,11 @@ export default function StudentGradesPage() {
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(getCurrentAcademicYear());
   const [attendance, setAttendance] = useState<{ presentDays: number; totalDays: number } | null>(null);
   const [evaluation, setEvaluation] = useState<{ conduct?: string; interest?: string; remarks?: string } | null>(null);
+  const [rollNumber, setRollNumber] = useState<number | undefined>(undefined);
+  const [totalStudents, setTotalStudents] = useState<number | undefined>(undefined);
+  const [classPosition, setClassPosition] = useState<number | undefined>(undefined);
+  const [closingDate, setClosingDate] = useState<string | undefined>(undefined);
+  const [reopeningDate, setReopeningDate] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +134,19 @@ export default function StudentGradesPage() {
             if (classStudentsRes.ok) {
               const classStudents = await classStudentsRes.json();
               const studentsArray = Array.isArray(classStudents) ? classStudents : [];
+              
+              // Set total students
+              setTotalStudents(studentsArray.length);
+
+              // Calculate roll number (position in enrollment order)
+              const sortedByEnrollment = [...studentsArray].sort((a, b) => {
+                const dateA = a.enrollmentDate ? new Date(a.enrollmentDate).getTime() : 0;
+                const dateB = b.enrollmentDate ? new Date(b.enrollmentDate).getTime() : 0;
+                if (dateA !== dateB) return dateA - dateB;
+                return a.studentId.localeCompare(b.studentId);
+              });
+              const rollIndex = sortedByEnrollment.findIndex((s) => s.id === studentId);
+              setRollNumber(rollIndex >= 0 ? rollIndex + 1 : undefined);
 
               // For each subject, get all grades and calculate positions
               for (const [subjectId, subjectGrade] of subjectGradeMap.entries()) {
@@ -160,6 +178,39 @@ export default function StudentGradesPage() {
                   const studentPosition = studentTotals.findIndex((s) => s.studentId === studentId) + 1;
                   subjectGrade.position = studentPosition > 0 ? studentPosition : 0;
                 }
+              }
+
+              // Calculate overall class position (sum of all subject totals)
+              const allClassGradesRes = await fetch(
+                `/api/grades?classId=${studentData.classId}&term=${selectedTerm}&academicYear=${selectedAcademicYear}&withDetails=true`,
+                { credentials: 'include' }
+              );
+
+              if (allClassGradesRes.ok) {
+                const allClassGrades = await allClassGradesRes.json();
+                const allGradesArray = Array.isArray(allClassGrades) ? allClassGrades : [];
+
+                // Group by student and calculate overall total
+                const studentOverallTotals = new Map<string, number>();
+                allGradesArray.forEach((g: any) => {
+                  const classTotal = (g.project || 0) + (g.test1 || 0) + (g.test2 || 0) + (g.groupWork || 0);
+                  const classMax = 40 + 20 + 20 + 20;
+                  const classScore = classMax > 0 ? (classTotal / classMax) * 50 : 0;
+                  const examScore = ((g.exam || 0) / 100) * 50;
+                  const total = classScore + examScore;
+
+                  const current = studentOverallTotals.get(g.studentId) || 0;
+                  studentOverallTotals.set(g.studentId, current + total);
+                });
+
+                // Convert to array and sort
+                const sortedOverall = Array.from(studentOverallTotals.entries())
+                  .map(([studentId, total]) => ({ studentId, total }))
+                  .sort((a, b) => b.total - a.total);
+
+                // Find position
+                const overallPosition = sortedOverall.findIndex((s) => s.studentId === studentId) + 1;
+                setClassPosition(overallPosition > 0 ? overallPosition : undefined);
               }
             }
           }
@@ -198,6 +249,26 @@ export default function StudentGradesPage() {
               interest: evaluationData.interestLevel || undefined,
               remarks: evaluationData.classTeacherRemarks || undefined,
             });
+          }
+        }
+
+        // Load term settings for closing and reopening dates
+        const termSettingsRes = await fetch(
+          `/api/settings/term?academicYear=${encodeURIComponent(selectedAcademicYear)}`,
+          { credentials: 'include' }
+        );
+
+        if (termSettingsRes.ok) {
+          const termSettings = await termSettingsRes.json();
+          if (Array.isArray(termSettings)) {
+            const currentTermSettings = termSettings.find((ts: any) => ts.term === parseInt(selectedTerm));
+            if (currentTermSettings) {
+              setClosingDate(currentTermSettings.closingDate);
+              // Get next term's reopening date (or current term's reopening date if next term not available)
+              const nextTerm = parseInt(selectedTerm) === 3 ? 1 : parseInt(selectedTerm) + 1;
+              const nextTermSettings = termSettings.find((ts: any) => ts.term === nextTerm);
+              setReopeningDate(nextTermSettings?.reopeningDate || currentTermSettings.reopeningDate);
+            }
           }
         }
       } catch (error) {
@@ -367,6 +438,11 @@ export default function StudentGradesPage() {
             conduct={evaluation?.conduct}
             interest={evaluation?.interest}
             classTeacherRemarks={evaluation?.remarks}
+            classPosition={classPosition}
+            rollNumber={rollNumber}
+            totalStudents={totalStudents}
+            closingDate={closingDate}
+            reopeningDate={reopeningDate}
           />
         </div>
       )}

@@ -53,6 +53,15 @@ export interface SystemPreferences {
   updatedAt: Date;
 }
 
+export interface TermSettings {
+  id: string;
+  academicYear: string;
+  term: number;
+  closingDate?: Date;
+  reopeningDate?: Date;
+  updatedAt: Date;
+}
+
 class SettingsService {
   /**
    * Get school settings
@@ -492,6 +501,127 @@ class SettingsService {
       };
     } catch (error: any) {
       console.error('Error updating system preferences:', error);
+      throw new Error(formatError(error));
+    }
+  }
+
+  /**
+   * Get term settings for a specific academic year and term
+   */
+  async getTermSettings(
+    supabase: SupabaseClient,
+    academicYear: string,
+    term: number
+  ): Promise<TermSettings | null> {
+    try {
+      const { data, error } = await supabase
+        .from('term_settings')
+        .select('*')
+        .eq('academic_year', academicYear)
+        .eq('term', term)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows returned
+          return null;
+        }
+        throw error;
+      }
+
+      if (!data) return null;
+
+      return {
+        id: data.id,
+        academicYear: data.academic_year,
+        term: data.term,
+        closingDate: data.closing_date ? new Date(data.closing_date) : undefined,
+        reopeningDate: data.reopening_date ? new Date(data.reopening_date) : undefined,
+        updatedAt: new Date(data.updated_at),
+      };
+    } catch (error: any) {
+      console.error('Error getting term settings:', error);
+      throw new Error(formatError(error));
+    }
+  }
+
+  /**
+   * Get all term settings for an academic year
+   */
+  async getTermSettingsByYear(
+    supabase: SupabaseClient,
+    academicYear: string
+  ): Promise<TermSettings[]> {
+    try {
+      const { data, error } = await supabase
+        .from('term_settings')
+        .select('*')
+        .eq('academic_year', academicYear)
+        .order('term', { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) return [];
+
+      return data.map((row) => ({
+        id: row.id,
+        academicYear: row.academic_year,
+        term: row.term,
+        closingDate: row.closing_date ? new Date(row.closing_date) : undefined,
+        reopeningDate: row.reopening_date ? new Date(row.reopening_date) : undefined,
+        updatedAt: new Date(row.updated_at),
+      }));
+    } catch (error: any) {
+      console.error('Error getting term settings by year:', error);
+      throw new Error(formatError(error));
+    }
+  }
+
+  /**
+   * Update or create term settings
+   */
+  async upsertTermSettings(
+    supabase: SupabaseClient,
+    settings: Omit<TermSettings, 'id' | 'updatedAt'>
+  ): Promise<TermSettings> {
+    try {
+      const updateData: any = {
+        academic_year: settings.academicYear,
+        term: settings.term,
+      };
+
+      if (settings.closingDate) {
+        updateData.closing_date = settings.closingDate.toISOString().split('T')[0];
+      } else {
+        updateData.closing_date = null;
+      }
+
+      if (settings.reopeningDate) {
+        updateData.reopening_date = settings.reopeningDate.toISOString().split('T')[0];
+      } else {
+        updateData.reopening_date = null;
+      }
+
+      const { data, error } = await supabase
+        .from('term_settings')
+        .upsert(updateData, {
+          onConflict: 'academic_year,term',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return {
+        id: data.id,
+        academicYear: data.academic_year,
+        term: data.term,
+        closingDate: data.closing_date ? new Date(data.closing_date) : undefined,
+        reopeningDate: data.reopening_date ? new Date(data.reopening_date) : undefined,
+        updatedAt: new Date(data.updated_at),
+      };
+    } catch (error: any) {
+      console.error('Error upserting term settings:', error);
       throw new Error(formatError(error));
     }
   }
