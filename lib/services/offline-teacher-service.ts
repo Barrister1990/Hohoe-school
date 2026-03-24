@@ -171,8 +171,13 @@ export class OfflineTeacherService {
 
         return response;
       } catch (error) {
-        console.warn('[OfflineTeacher] Failed to sync grade, will retry:', error);
-        // Grade is already saved locally with 'pending' status
+        // If browser still reports online, surface the error immediately
+        // instead of silently queueing and waiting for manual sync.
+        if (offlineDetector.isOnline()) {
+          throw error;
+        }
+
+        console.warn('[OfflineTeacher] Connection lost while saving grade, queued for sync:', error);
         return { success: true, queued: true, message: 'Saved locally, will sync when online' };
       }
     }
@@ -208,7 +213,11 @@ export class OfflineTeacherService {
 
         return response;
       } catch (error) {
-        console.warn('[OfflineTeacher] Failed to sync attendance, will retry:', error);
+        if (offlineDetector.isOnline()) {
+          throw error;
+        }
+
+        console.warn('[OfflineTeacher] Connection lost while saving attendance, queued for sync:', error);
         return { success: true, queued: true, message: 'Saved locally, will sync when online' };
       }
     }
@@ -244,7 +253,11 @@ export class OfflineTeacherService {
 
         return response;
       } catch (error) {
-        console.warn('[OfflineTeacher] Failed to sync evaluation, will retry:', error);
+        if (offlineDetector.isOnline()) {
+          throw error;
+        }
+
+        console.warn('[OfflineTeacher] Connection lost while saving evaluation, queued for sync:', error);
         return { success: true, queued: true, message: 'Saved locally, will sync when online' };
       }
     }

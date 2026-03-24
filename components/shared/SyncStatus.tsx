@@ -42,8 +42,8 @@ export function SyncStatus() {
     }
   };
 
-  // Don't show if no pending items and not syncing
-  if (pendingSyncCount === 0 && syncStatus === 'idle' && isOnline) {
+  // Show only when there are items pending sync
+  if (pendingSyncCount === 0) {
     return null;
   }
 

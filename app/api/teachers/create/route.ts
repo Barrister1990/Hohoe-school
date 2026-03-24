@@ -20,7 +20,16 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, isClassTeacher, isSubjectTeacher, password } = body;
+    const {
+      name,
+      email,
+      phone,
+      isClassTeacher,
+      isSubjectTeacher,
+      password,
+      classId,
+      subjectAssignments,
+    } = body;
 
     // Validate input
     if (!name || !email || !password) {
@@ -38,6 +47,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (isClassTeacher && !classId) {
+      return NextResponse.json(
+        { error: 'Class selection is required when Class Teacher is selected' },
+        { status: 400 }
+      );
+    }
+
+    if (subjectAssignments && !Array.isArray(subjectAssignments)) {
+      return NextResponse.json(
+        { error: 'Invalid subject assignments format' },
+        { status: 400 }
+      );
+    }
+
+    if (isSubjectTeacher && (!Array.isArray(subjectAssignments) || subjectAssignments.length === 0)) {
+      return NextResponse.json(
+        { error: 'At least one subject assignment is required when Subject Teacher is selected' },
+        { status: 400 }
+      );
+    }
+
     // Determine primary role (for role field - used for routing/navigation)
     // If both are selected, use 'class_teacher' as primary
     const primaryRole = isClassTeacher && isSubjectTeacher
@@ -50,7 +80,7 @@ export async function POST(request: NextRequest) {
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // Require email verification
+      email_confirm: true,
     });
 
     if (authError) {
@@ -79,8 +109,8 @@ export async function POST(request: NextRequest) {
         is_subject_teacher: isSubjectTeacher || false,
         phone: phone || null,
         is_active: true,
-        email_verified: false,
-        password_change_required: true, // Require password change on first login
+        email_verified: true,
+        password_change_required: true,
       })
       .select()
       .single();
@@ -94,31 +124,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send verification email using inviteUserByEmail (sends email automatically)
-    // This will send a confirmation email with a link
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      email,
-      {
-        redirectTo: `${appUrl}/auth/callback`,
-        data: {
-          name,
-          role: primaryRole,
-        },
-      }
-    );
+    try {
+      // Assign class if teacher is a class teacher
+      if (isClassTeacher && classId) {
+        const { error: classUpdateError } = await supabaseAdmin
+          .from('classes')
+          .update({
+            class_teacher_id: userData.id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', classId);
 
-    // If invite fails, try to send a confirmation email manually
-    if (inviteError) {
-      console.warn('Failed to send invite email, trying alternative method:', inviteError);
-      // Generate a confirmation link and send it via email template
-      const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'signup',
-        email,
-        password: password,
-      });
-      // Note: In production, you would send this link via your email service
-      // For now, the link is generated but email sending depends on Supabase email configuration
+        if (classUpdateError) {
+          throw classUpdateError;
+        }
+      }
+
+      // Assign subjects if provided
+      if (Array.isArray(subjectAssignments) && subjectAssignments.length > 0) {
+        const insertData = subjectAssignments.map((assignment: any) => ({
+          teacher_id: userData.id,
+          subject_id: assignment.subjectId,
+          class_id: assignment.classId,
+        }));
+
+        const { error: assignmentsError } = await supabaseAdmin
+          .from('subject_assignments')
+          .insert(insertData);
+
+        if (assignmentsError) {
+          throw assignmentsError;
+        }
+      }
+    } catch (assignmentError) {
+      // Best-effort rollback to avoid partial teacher records
+      await supabaseAdmin
+        .from('subject_assignments')
+        .delete()
+        .eq('teacher_id', userData.id);
+
+      if (classId) {
+        await supabaseAdmin
+          .from('classes')
+          .update({
+            class_teacher_id: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', classId)
+          .eq('class_teacher_id', userData.id);
+      }
+
+      await supabaseAdmin.from('users').delete().eq('id', userData.id);
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+
+      throw assignmentError;
     }
 
     return NextResponse.json({
