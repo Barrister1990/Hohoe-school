@@ -13,6 +13,7 @@ import { z } from 'zod';
 const teacherSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
+  temporaryPassword: z.string().min(8, 'Temporary password must be at least 8 characters'),
   phone: z.string().optional(),
   isClassTeacher: z.boolean(),
   isSubjectTeacher: z.boolean(),
@@ -49,6 +50,7 @@ export default function AddTeacherPage() {
     defaultValues: {
       isClassTeacher: false,
       isSubjectTeacher: false,
+      temporaryPassword: '',
       classId: '',
     },
   });
@@ -119,9 +121,6 @@ export default function AddTeacherPage() {
 
     setLoading(true);
     try {
-      // Generate a temporary password for first login
-      const tempPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
-
       const response = await fetch('/api/teachers/create', {
         method: 'POST',
         credentials: 'include',
@@ -136,7 +135,7 @@ export default function AddTeacherPage() {
           isSubjectTeacher: data.isSubjectTeacher,
           classId: data.isClassTeacher ? data.classId : null,
           subjectAssignments: data.isSubjectTeacher ? subjectAssignments : [],
-          password: tempPassword,
+          password: data.temporaryPassword,
         }),
       });
 
@@ -151,7 +150,7 @@ export default function AddTeacherPage() {
         `Email: ${result.user.email}\n` +
         `Email is already confirmed. No invite link was sent.\n` +
         `The teacher will need this temporary password on first login:\n\n` +
-        `Temporary password: ${tempPassword}\n` +
+        `Temporary password: ${data.temporaryPassword}\n` +
         `(Please share this securely with the teacher)`
       );
       router.push('/admin/teachers');
@@ -222,6 +221,22 @@ export default function AddTeacherPage() {
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="temporaryPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Temporary Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                {...register('temporaryPassword')}
+                type="password"
+                id="temporaryPassword"
+                className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                placeholder="Enter temporary password"
+              />
+              {errors.temporaryPassword && (
+                <p className="mt-1 text-xs text-red-600">{errors.temporaryPassword.message}</p>
               )}
             </div>
 
