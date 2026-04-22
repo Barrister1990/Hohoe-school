@@ -3,19 +3,20 @@
 import { useAlert } from '@/components/shared/AlertProvider';
 import TikTokLoader from '@/components/TikTokLoader';
 import { Class, Student } from '@/types';
-import { ClipboardList, FileUp, Filter, MoreVertical, Plus, Search, User } from 'lucide-react';
+import { ClipboardList, FileUp, Filter, MoreVertical, Plus, Search, Trash2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function StudentsPage() {
   const router = useRouter();
-  const { showError } = useAlert();
+  const { showError, showSuccess } = useAlert();
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -82,6 +83,38 @@ export default function StudentsPage() {
       month: 'short',
       year: 'numeric',
     });
+  };
+
+  const handleDeleteStudent = async (student: Student) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${student.firstName} ${student.lastName} (${student.studentId})?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingStudentId(student.id);
+    try {
+      const res = await fetch(`/api/students/${student.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete student');
+      }
+
+      setStudents((prev) => prev.filter((s) => s.id !== student.id));
+      setOpenMenu(null);
+      showSuccess('Student deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete student:', error);
+      showError(error.message || 'Failed to delete student. Please try again.');
+    } finally {
+      setDeletingStudentId(null);
+    }
   };
 
   return (
@@ -266,6 +299,14 @@ export default function StudentsPage() {
                               >
                                 <ClipboardList className="h-4 w-4" />
                                 View Grades
+                              </button>
+                              <button
+                                onClick={() => handleDeleteStudent(student)}
+                                disabled={deletingStudentId === student.id}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left disabled:opacity-60 disabled:cursor-not-allowed"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                {deletingStudentId === student.id ? 'Deleting...' : 'Delete Student'}
                               </button>
                             </div>
                           </>
